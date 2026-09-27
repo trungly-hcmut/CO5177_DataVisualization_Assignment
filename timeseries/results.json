@@ -1,0 +1,282 @@
+{
+  "dataset": {
+    "days": 7939,
+    "start": "2005-01-01",
+    "end": "2026-09-26",
+    "variables": 14,
+    "missing_dates": 0,
+    "trend_c_per_decade": 0.488,
+    "coldest": [
+      "2016-01-24",
+      6.1
+    ],
+    "hottest": [
+      "2017-06-04",
+      33.4
+    ],
+    "extreme_days_z3": 9
+  },
+  "cold_surge": {
+    "r_dP_dTnext_winter": -0.361,
+    "mean_dT_after_rise": -1.03,
+    "mean_dT_otherwise": 0.153
+  },
+  "imputation_mae": {
+    "1": {
+      "Forward fill": 1.16,
+      "Linear interpolation": 0.706,
+      "Climatology": 1.974,
+      "Seasonal interpolation": 0.699
+    },
+    "3": {
+      "Forward fill": 1.765,
+      "Linear interpolation": 1.136,
+      "Climatology": 1.894,
+      "Seasonal interpolation": 1.127
+    },
+    "7": {
+      "Forward fill": 2.211,
+      "Linear interpolation": 1.689,
+      "Climatology": 1.997,
+      "Seasonal interpolation": 1.63
+    },
+    "14": {
+      "Forward fill": 2.451,
+      "Linear interpolation": 1.952,
+      "Climatology": 1.865,
+      "Seasonal interpolation": 1.926
+    },
+    "30": {
+      "Forward fill": 2.798,
+      "Linear interpolation": 2.223,
+      "Climatology": 1.87,
+      "Seasonal interpolation": 2.148
+    }
+  },
+  "split": {
+    "train": 6179,
+    "val": 730,
+    "test": 1000
+  },
+  "phi": 0.8082,
+  "tuning": {
+    "best_cv_mae_delta": 0.9284,
+    "default_cv_mae_delta": 0.9436,
+    "best_params": {
+      "min_samples_leaf": 40,
+      "max_leaf_nodes": 15,
+      "max_iter": 200,
+      "learning_rate": 0.03,
+      "l2_regularization": 2.0
+    }
+  },
+  "validation": {
+    "HGB (change ΔT)": {
+      "MAE": 0.9056,
+      "RMSE": 1.2279,
+      "R2": 0.94,
+      "skill_vs_persistence": 0.1808
+    },
+    "Random Forest": {
+      "MAE": 0.9209,
+      "RMSE": 1.281,
+      "R2": 0.9347,
+      "skill_vs_persistence": 0.167
+    },
+    "HGB ΔT (tuned)": {
+      "MAE": 0.9218,
+      "RMSE": 1.2419,
+      "R2": 0.9386,
+      "skill_vs_persistence": 0.1662
+    },
+    "HGB (level)": {
+      "MAE": 0.9332,
+      "RMSE": 1.2479,
+      "R2": 0.938,
+      "skill_vs_persistence": 0.1559
+    },
+    "Ridge regression": {
+      "MAE": 0.974,
+      "RMSE": 1.3063,
+      "R2": 0.9321,
+      "skill_vs_persistence": 0.119
+    },
+    "Damped anomaly persistence": {
+      "MAE": 1.092,
+      "RMSE": 1.5324,
+      "R2": 0.9065,
+      "skill_vs_persistence": 0.0122
+    },
+    "Persistence": {
+      "MAE": 1.1055,
+      "RMSE": 1.6127,
+      "R2": 0.8964,
+      "skill_vs_persistence": 0.0
+    },
+    "Climatology": {
+      "MAE": 2.0141,
+      "RMSE": 2.579,
+      "R2": 0.7352,
+      "skill_vs_persistence": -0.822
+    }
+  },
+  "test": {
+    "HGB (change ΔT)": {
+      "MAE": 0.9158,
+      "RMSE": 1.2259,
+      "R2": 0.9351,
+      "skill_vs_persistence": 0.1526
+    },
+    "HGB ΔT (tuned)": {
+      "MAE": 0.9186,
+      "RMSE": 1.2217,
+      "R2": 0.9355,
+      "skill_vs_persistence": 0.15
+    },
+    "HGB (level)": {
+      "MAE": 0.932,
+      "RMSE": 1.231,
+      "R2": 0.9345,
+      "skill_vs_persistence": 0.1376
+    },
+    "Random Forest": {
+      "MAE": 0.9355,
+      "RMSE": 1.2449,
+      "R2": 0.9331,
+      "skill_vs_persistence": 0.1343
+    },
+    "Ridge regression": {
+      "MAE": 0.9702,
+      "RMSE": 1.283,
+      "R2": 0.9289,
+      "skill_vs_persistence": 0.1023
+    },
+    "Damped anomaly persistence": {
+      "MAE": 1.0752,
+      "RMSE": 1.434,
+      "R2": 0.9112,
+      "skill_vs_persistence": 0.0051
+    },
+    "Persistence": {
+      "MAE": 1.0807,
+      "RMSE": 1.5037,
+      "R2": 0.9023,
+      "skill_vs_persistence": 0.0
+    },
+    "Climatology": {
+      "MAE": 1.9904,
+      "RMSE": 2.538,
+      "R2": 0.7217,
+      "skill_vs_persistence": -0.8418
+    }
+  },
+  "final_model": "HGB (change ΔT)",
+  "test_mae_by_month": {
+    "1": {
+      "abs_err_model": 1.049,
+      "abs_err_persist": 1.361
+    },
+    "2": {
+      "abs_err_model": 1.155,
+      "abs_err_persist": 1.609
+    },
+    "3": {
+      "abs_err_model": 0.821,
+      "abs_err_persist": 1.241
+    },
+    "4": {
+      "abs_err_model": 1.1,
+      "abs_err_persist": 1.081
+    },
+    "5": {
+      "abs_err_model": 0.914,
+      "abs_err_persist": 1.081
+    },
+    "6": {
+      "abs_err_model": 0.868,
+      "abs_err_persist": 0.994
+    },
+    "7": {
+      "abs_err_model": 0.687,
+      "abs_err_persist": 0.749
+    },
+    "8": {
+      "abs_err_model": 0.836,
+      "abs_err_persist": 0.871
+    },
+    "9": {
+      "abs_err_model": 0.72,
+      "abs_err_persist": 0.864
+    },
+    "10": {
+      "abs_err_model": 0.899,
+      "abs_err_persist": 0.963
+    },
+    "11": {
+      "abs_err_model": 1.125,
+      "abs_err_persist": 1.012
+    },
+    "12": {
+      "abs_err_model": 0.884,
+      "abs_err_persist": 1.116
+    }
+  },
+  "horizon_mae": {
+    "1": {
+      "Persistence": 1.081,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.075,
+      "HGB (change ΔT)": 0.916
+    },
+    "2": {
+      "Persistence": 1.744,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.603,
+      "HGB (change ΔT)": 1.489
+    },
+    "3": {
+      "Persistence": 2.161,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.858,
+      "HGB (change ΔT)": 1.792
+    },
+    "4": {
+      "Persistence": 2.439,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.974,
+      "HGB (change ΔT)": 1.946
+    },
+    "5": {
+      "Persistence": 2.562,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.998,
+      "HGB (change ΔT)": 1.985
+    },
+    "6": {
+      "Persistence": 2.598,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.99,
+      "HGB (change ΔT)": 2.002
+    },
+    "7": {
+      "Persistence": 2.614,
+      "Climatology": 1.99,
+      "Damped anomaly persistence": 1.986,
+      "HGB (change ΔT)": 1.989
+    }
+  },
+  "importance": {
+    "anom_0": 0.3003,
+    "wind_cos": 0.1961,
+    "rain_log_0": 0.1336,
+    "cloud_0": 0.0875,
+    "dtr_0": 0.0751,
+    "wind_speed_0": 0.0745,
+    "t_lag1": 0.0639,
+    "dp_1d": 0.0616,
+    "humidity_0": 0.0282,
+    "t_mean30": 0.0247,
+    "pressure_0": 0.0235,
+    "t_mean7": 0.0194
+  }
+}

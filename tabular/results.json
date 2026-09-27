@@ -1,0 +1,197 @@
+{
+  "dataset": {
+    "rows_raw": 119390,
+    "cols_raw": 32,
+    "rows_clean": 85982,
+    "cancel_rate_raw": 0.37041628277075134,
+    "cancel_rate_clean": 0.27581354236933314,
+    "duplicates": 33241,
+    "n_features": 80
+  },
+  "split": {
+    "train": 60187,
+    "validation": 12897,
+    "test": 12898
+  },
+  "validation": {
+    "HGB (tuned)": {
+      "accuracy": 0.8277,
+      "precision": 0.7207,
+      "recall": 0.6129,
+      "f1": 0.6624,
+      "roc_auc": 0.8941,
+      "pr_auc": 0.7676
+    },
+    "Random Forest": {
+      "accuracy": 0.8272,
+      "precision": 0.7426,
+      "recall": 0.5718,
+      "f1": 0.6461,
+      "roc_auc": 0.8878,
+      "pr_auc": 0.7559
+    },
+    "HistGradientBoosting": {
+      "accuracy": 0.8256,
+      "precision": 0.7232,
+      "recall": 0.5957,
+      "f1": 0.6533,
+      "roc_auc": 0.887,
+      "pr_auc": 0.7533
+    },
+    "Decision Tree": {
+      "accuracy": 0.8069,
+      "precision": 0.6693,
+      "recall": 0.5929,
+      "f1": 0.6288,
+      "roc_auc": 0.8582,
+      "pr_auc": 0.6936
+    },
+    "Logistic Regression": {
+      "accuracy": 0.7949,
+      "precision": 0.6755,
+      "recall": 0.4934,
+      "f1": 0.5703,
+      "roc_auc": 0.8468,
+      "pr_auc": 0.6844
+    },
+    "Dummy (always 0)": {
+      "accuracy": 0.7242,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.5,
+      "pr_auc": 0.2758
+    }
+  },
+  "tuning": {
+    "best_cv_pr_auc": 0.7655851235850605,
+    "best_params": {
+      "min_samples_leaf": 10,
+      "max_leaf_nodes": 127,
+      "max_iter": 700,
+      "learning_rate": 0.05,
+      "l2_regularization": 0.1
+    }
+  },
+  "pitfalls": {
+    "With target leakage": {
+      "accuracy": 1.0,
+      "f1": 1.0,
+      "roc_auc": 1.0,
+      "pr_auc": 1.0
+    },
+    "Duplicates not removed": {
+      "accuracy": 0.8541,
+      "f1": 0.7929,
+      "roc_auc": 0.9328,
+      "pr_auc": 0.9037
+    },
+    "Correct process (section 3)": {
+      "accuracy": 0.8256,
+      "f1": 0.6533,
+      "roc_auc": 0.887,
+      "pr_auc": 0.7533
+    }
+  },
+  "imbalance": {
+    "Default (threshold 0.5)": {
+      "precision": 0.7207,
+      "recall": 0.6129,
+      "f1": 0.6624,
+      "pr_auc": 0.7676
+    },
+    "class_weight=balanced": {
+      "precision": 0.6134,
+      "recall": 0.8136,
+      "f1": 0.6995,
+      "pr_auc": 0.7678
+    },
+    "F1-optimal threshold (0.33)": {
+      "precision": 0.6325,
+      "recall": 0.7838,
+      "f1": 0.7001,
+      "pr_auc": 0.7676
+    }
+  },
+  "threshold": 0.32829059380789133,
+  "test": {
+    "Logistic Regression (baseline)": {
+      "accuracy": 0.8,
+      "precision": 0.6889,
+      "recall": 0.5011,
+      "f1": 0.5802,
+      "roc_auc": 0.8529,
+      "pr_auc": 0.694
+    },
+    "HGB (tuned) + optimal threshold": {
+      "accuracy": 0.8213,
+      "precision": 0.6445,
+      "recall": 0.7856,
+      "f1": 0.708,
+      "roc_auc": 0.8977,
+      "pr_auc": 0.7757
+    }
+  },
+  "confusion_matrix": [
+    [
+      7798,
+      1542
+    ],
+    [
+      763,
+      2795
+    ]
+  ],
+  "importance": {
+    "lead_time": 0.1467,
+    "country": 0.1331,
+    "market_segment": 0.1083,
+    "total_of_special_requests": 0.1041,
+    "adr": 0.0738,
+    "required_car_parking_spaces": 0.0629,
+    "previous_cancellations": 0.0554,
+    "customer_type": 0.0396,
+    "deposit_type": 0.0271,
+    "booking_changes": 0.0237,
+    "previous_bookings_not_canceled": 0.0198,
+    "arrival_date_week_number": 0.0197
+  },
+  "segments": {
+    "Online TA": {
+      "n": 7693,
+      "cancel_rate": 0.3581,
+      "error_rate": 0.2255,
+      "recall": 0.8116
+    },
+    "Direct": {
+      "n": 1794,
+      "cancel_rate": 0.1299,
+      "error_rate": 0.1394,
+      "recall": 0.412
+    },
+    "Complementary": {
+      "n": 95,
+      "cancel_rate": 0.1158,
+      "error_rate": 0.1368,
+      "recall": 0.0909
+    },
+    "Corporate": {
+      "n": 571,
+      "cancel_rate": 0.1261,
+      "error_rate": 0.1086,
+      "recall": 0.4167
+    },
+    "Offline TA/TO": {
+      "n": 2027,
+      "cancel_rate": 0.1436,
+      "error_rate": 0.0893,
+      "recall": 0.8694
+    },
+    "Groups": {
+      "n": 686,
+      "cancel_rate": 0.2711,
+      "error_rate": 0.0845,
+      "recall": 0.9194
+    }
+  }
+}

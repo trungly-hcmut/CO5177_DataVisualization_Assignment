@@ -1,0 +1,146 @@
+{
+  "dataset": {
+    "rows_raw": 3780,
+    "rows_clean": 3769,
+    "classes": [
+      "Business",
+      "Education",
+      "Entertainment",
+      "Health",
+      "Law",
+      "News",
+      "Sci-Tech",
+      "Sports",
+      "Travel",
+      "World"
+    ],
+    "missing_description": 24,
+    "median_title_len": 12.0,
+    "median_desc_len": 31.0,
+    "vocab": {
+      "BoW 1-gram": 2950,
+      "TF-IDF 1-gram": 2950,
+      "TF-IDF 1–2-gram": 15517,
+      "TF-IDF char 2–5": 19160
+    },
+    "single_char_syllables_kept": 27
+  },
+  "split": {
+    "train": 2638,
+    "val": 565,
+    "test": 566
+  },
+  "grid_val_macro_f1": {
+    "BoW 1-gram | Multinomial NB": 0.8388,
+    "BoW 1-gram | Logistic Regression": 0.8198,
+    "BoW 1-gram | Linear SVM": 0.819,
+    "BoW 1-gram | kNN (cosine, k=15)": 0.7511,
+    "TF-IDF 1-gram | Multinomial NB": 0.8369,
+    "TF-IDF 1-gram | Logistic Regression": 0.8477,
+    "TF-IDF 1-gram | Linear SVM": 0.8577,
+    "TF-IDF 1-gram | kNN (cosine, k=15)": 0.8369,
+    "TF-IDF 1–2-gram | Multinomial NB": 0.8559,
+    "TF-IDF 1–2-gram | Logistic Regression": 0.8636,
+    "TF-IDF 1–2-gram | Linear SVM": 0.8629,
+    "TF-IDF 1–2-gram | kNN (cosine, k=15)": 0.8488,
+    "TF-IDF char 2–5 | Multinomial NB": 0.8247,
+    "TF-IDF char 2–5 | Logistic Regression": 0.8474,
+    "TF-IDF char 2–5 | Linear SVM": 0.858,
+    "TF-IDF char 2–5 | kNN (cosine, k=15)": 0.8191
+  },
+  "random_val_macro_f1": 0.0812,
+  "tuning": {
+    "best_params": {
+      "clf__C": "3.0",
+      "vec__min_df": "1",
+      "vec__ngram_range": "(1, 3)",
+      "vec__sublinear_tf": "True"
+    },
+    "cv_macro_f1": 0.8651,
+    "val_macro_f1": 0.8567
+  },
+  "fields_val_macro_f1": {
+    "Headline only": 0.7903,
+    "Lead only": 0.8436,
+    "Headline + lead": 0.8567
+  },
+  "learning_curve": {
+    "263": 0.7424,
+    "527": 0.7941,
+    "923": 0.819,
+    "1319": 0.8448,
+    "1978": 0.8529,
+    "2638": 0.8567
+  },
+  "comparison": {
+    "Embedding (e5-small) + LogReg": {
+      "validation macro-F1": 0.8816,
+      "test macro-F1": 0.8726,
+      "test accuracy": 0.8728
+    },
+    "Hybrid: TF-IDF ⊕ embedding + Linear SVM": {
+      "validation macro-F1": 0.8876,
+      "test macro-F1": 0.892,
+      "test accuracy": 0.8922
+    },
+    "Stratified random baseline": {
+      "validation macro-F1": NaN,
+      "test macro-F1": 0.1024,
+      "test accuracy": NaN
+    },
+    "TF-IDF + Linear SVM (tuned)": {
+      "validation macro-F1": 0.8567,
+      "test macro-F1": 0.8654,
+      "test accuracy": 0.8657
+    }
+  },
+  "final_model": "Hybrid: TF-IDF ⊕ embedding + Linear SVM",
+  "test_accuracy": 0.8922,
+  "test_macro_f1": 0.892,
+  "per_class_f1": {
+    "Business": 0.8142,
+    "Education": 0.9244,
+    "Entertainment": 0.9455,
+    "Health": 0.9369,
+    "Law": 0.8926,
+    "News": 0.8649,
+    "Sci-Tech": 0.844,
+    "Sports": 0.973,
+    "Travel": 0.878,
+    "World": 0.8462
+  },
+  "top_confusions": [
+    {
+      "true": "News",
+      "predicted": "Education",
+      "errors": 4.0
+    },
+    {
+      "true": "Business",
+      "predicted": "Sci-Tech",
+      "errors": 4.0
+    },
+    {
+      "true": "World",
+      "predicted": "Law",
+      "errors": 3.0
+    },
+    {
+      "true": "Sci-Tech",
+      "predicted": "Travel",
+      "errors": 3.0
+    },
+    {
+      "true": "World",
+      "predicted": "Business",
+      "errors": 3.0
+    }
+  ],
+  "centroid_similarity_top": {
+    "Business ~ Sci-Tech": 0.5839,
+    "Law ~ News": 0.5512,
+    "News ~ Travel": 0.5242,
+    "Business ~ News": 0.5032,
+    "Sci-Tech ~ World": 0.4906
+  }
+}
