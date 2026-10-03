@@ -1,0 +1,185 @@
+% Final report submitted to the LMS as G3-report.pdf (assignment section 6.3).
+% The three part chapters reuse exactly the same bodies as the per-part reports.
+\documentclass[11pt,a4paper,openany]{report}
+\usepackage{g3report}
+\input{generated/common}
+\input{generated/tabular}
+\input{generated/text}
+\input{generated/timeseries}
+\setpartlabel{Final report}
+\hypersetup{pdftitle={Group G3 — Final report — Programming Foundations for Data Analysis and Visualization}}
+\setcounter{tocdepth}{1}
+
+\begin{document}
+\coverpage{Final assignment report · Group G3}
+  {Three Data Types, One Workflow}
+  {Hotel booking cancellations · Vietnamese news topics · Hanoi temperature forecasts}
+  {\href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/}{Project website}\quad·\quad
+   \href{https://github.com/trungly-hcmut/CO5177_DataVisualization_Assignment}{GitHub repository}\quad·\quad
+   Videos: \textcolor{muted}{to be published}}
+
+\tableofcontents
+
+% ------------------------------------------------------------------
+\sectionsflow
+\chapter{Group and project overview}\label{ov:chapter}
+
+\section{Group information}
+Group \textbf{G3} carried out the assignment of the course \emph{Nền tảng lập trình cho phân tích và trực quan dữ liệu}
+(Programming Foundations for Data Analysis and Visualization), Semester 261, academic year 2026--2027, under the supervision of
+\grpLecturer{} at the Faculty of Computer Science and Engineering, Ho Chi Minh City University of Technology (VNU-HCM).
+
+\begin{table}[H]\centering\small
+\caption{Members of Group G3.}\label{ov:tab-members}
+\begin{tabular}{@{}clll@{}}
+\toprule \hd{No.} & \hd{Full name} & \hd{Student ID} & \hd{Role} \\ \midrule
+\grpMemberRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+As a group of three, we completed the three data types the assignment requires (section 3.2): the mandatory
+\textbf{tabular} and \textbf{text} parts, and \textbf{time series} as the optional third part.
+
+\section{Deliverables}
+Everything is published on the group website (GitHub Pages) at \grpPages, with the source code in \grpRepo. Each part has its own
+page that shows the full executed notebook together with its report and video.
+
+\begin{table}[H]\centering\small
+\caption{Deliverables of each part (full addresses in Appendix~\ref{app:links}).}\label{ov:tab-deliverables}
+\begin{tabularx}{\linewidth}{lYYYY}
+\toprule \hd{Part} & \hd{Project page} & \hd{Notebook (.ipynb)} & \hd{PDF report} & \hd{Video} \\ \midrule
+Tabular & \href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/tabular/}{page} & \href{https://github.com/trungly-hcmut/CO5177_DataVisualization_Assignment/blob/main/tabular/G3_Tabular_HotelBooking.ipynb}{.ipynb on GitHub} & \href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/tabular/report.pdf}{report.pdf} & \TBVideo \\
+Text & \href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/text/}{page} & \href{https://github.com/trungly-hcmut/CO5177_DataVisualization_Assignment/blob/main/text/G3_Text_VnExpressNews.ipynb}{.ipynb on GitHub} & \href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/text/report.pdf}{report.pdf} & \TXVideo \\
+Time series & \href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/timeseries/}{page} & \href{https://github.com/trungly-hcmut/CO5177_DataVisualization_Assignment/blob/main/timeseries/G3_TimeSeries_HanoiWeather.ipynb}{.ipynb on GitHub} & \href{https://trungly-hcmut.github.io/CO5177_DataVisualization_Assignment/timeseries/report.pdf}{report.pdf} & \TSVideo \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The three datasets}
+\begin{table}[H]\centering\small
+\caption{Datasets used, one per data type.}\label{ov:tab-datasets}
+\begin{tabularx}{\linewidth}{lL{3.9cm}L{3.3cm}Y}
+\toprule \hd{Part} & \hd{Dataset and source} & \hd{Size} & \hd{Task} \\ \midrule
+Tabular & Hotel Booking Demand (Data in Brief, 2019), two hotels in Portugal & \TBRowsRaw{} bookings × \TBColsRaw{} columns & binary classification: will the booking be cancelled? \\
+Text & VnExpress headlines and leads, \textbf{crawled by the group} on 27~September~2026 & \TXRowsRaw{} articles, \TXClasses{} sections & multi-class classification: which section does the article belong to? \\
+Time series & Open-Meteo Historical Weather API (ERA5 reanalysis), central Hanoi & \TSDays{} days × \TSVars{} variables (2005–2026) & regression: tomorrow's mean temperature, and 1–7 days ahead \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Key results}
+\begin{table}[H]\centering\small
+\caption{Headline result of each part on its held-out test set.}\label{ov:tab-results}
+\input{generated/overview}
+\end{table}
+
+\section{Shared workflow and tools}
+All three parts follow the same workflow required by the assignment (section 5), and every notebook runs end-to-end on Google
+Colab (\emph{Run all}) with fixed random seeds, loading its data from the repository.
+
+\begin{figure}[H]\centering
+\begin{tikzpicture}[node distance=0.36cm, box/.style={draw=bklight, fill=tint, rounded corners=2pt, font=\sffamily\footnotesize,
+  text width=2.3cm, align=center, minimum height=1.35cm}, arr/.style={-{Stealth[length=2mm]}, bkdark, thick}]
+\node[box] (a) {\textbf{Collect}\\download, crawl, API};
+\node[box, right=of a] (b) {\textbf{Describe \& explore}\\quality checks, EDA};
+\node[box, right=of b] (c) {\textbf{Prepare}\\missing, outliers, encoding, scaling, split};
+\node[box, right=of c] (d) {\textbf{Model}\\baselines, scikit-learn models, tuning};
+\node[box, right=of d] (e) {\textbf{Explain}\\test metrics, errors, extra experiments};
+\draw[arr] (a) -- (b); \draw[arr] (b) -- (c); \draw[arr] (c) -- (d); \draw[arr] (d) -- (e);
+\end{tikzpicture}
+\caption{The workflow shared by the three parts.\label{ov:fig-workflow}}
+\end{figure}
+
+\textbf{Tools.} Python with NumPy and pandas (preparation), Matplotlib and Seaborn (visualisation), scikit-learn (pipelines,
+models, tuning, evaluation); requests and BeautifulSoup for crawling, and the sentence-transformers library for the
+pretrained text encoder. Each notebook also uses object-oriented code: custom scikit-learn transformers (\code{Winsorizer},
+\code{HotelFeatureBuilder}, \code{VietnameseTextCleaner}), wrappers (\code{DeltaRegressor}) and experiment classes
+(\code{ModelBenchmark}, \code{TextBenchmark}, \code{ForecastEvaluator}).
+
+\textbf{How each finding is presented.} Every extra experiment answers one explicit question with a figure or table, numbers
+to compare (before/after, model A vs B, correct vs wrong) and a conclusion in a highlighted box, as asked in section 7.1 of the
+assignment. All numbers in this report are generated from the notebooks' saved results, so the text always matches the tables.
+
+% ------------------------------------------------------------------
+\sectionsonnewpage   % the part chapters mirror the standalone reports: one section per page start
+\chapter{Tabular data: predicting hotel booking cancellations}\label{ch:tabular}
+\input{parts/tabular}
+
+\chapter{Text data: Vietnamese news topic classification}\label{ch:text}
+\input{parts/text}
+
+\chapter{Time-series data: forecasting Hanoi's daily temperature}\label{ch:timeseries}
+\input{parts/timeseries}
+
+% ------------------------------------------------------------------
+\sectionsflow
+\chapter{Overall conclusions}\label{ch:conclusions}
+
+\section{What the extra experiments showed}
+\begin{table}[H]\centering\small
+\caption{One question per extra experiment, with its numerical answer.}\label{cc:tab-questions}
+\begin{tabularx}{\linewidth}{lL{5.2cm}Y}
+\toprule \hd{Part} & \hd{Question} & \hd{Answer (numbers from the chapters above)} \\ \midrule
+Tabular & How much do leakage and duplicates inflate the scores? & leakage: \TBLeakF{} on every metric; duplicates: F1 \TBNodupF{} instead of \TBCorrectF \\
+Tabular & Does handling the class imbalance help? & recall \TBImbDefR{} → \TBImbThrR{} at threshold \TBThr; PR-AUC unchanged (\TBImbDefPR) \\
+Text & Does a pretrained encoder beat TF-IDF? & test macro-F1 \TXTfidfTest{} (TF-IDF) → \TXEmbTest{} (embedding) → \TXHybTest{} (hybrid) \\
+Text & Is the headline or the lead more informative? & lead \TXLeadOnly{} vs headline \TXHeadOnly; both \TXBoth \\
+Time series & How should missing days be filled? & seasonal interpolation up to 7 days (\TSImpSeasSeven~°C); climatology from 14 days (\TSImpClimFourteen~°C) \\
+Time series & How far ahead is the forecast useful? & beats every baseline for 1–\TSUseful{} days; converges to climatology (\TSClim~°C) after \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Lessons across the three parts}
+\begin{enumerate}
+\item \textbf{Data preparation decides whether a result can be trusted.} Leakage columns and duplicated rows in the tabular data,
+ambiguous labels in the crawled news, and a random instead of chronological split in the time series would each have produced
+better-looking but false numbers. In every part the honest set-up is documented and, where possible, measured.
+\item \textbf{Always compare with a baseline.} A dummy classifier (accuracy \TBValDummyAcc{} but F1 0), a random guess (macro-F1
+\TXRandTest) and persistence (\TSTestPersist~°C) put every score in context; the gains of the final models are real but measured
+against these, not against zero.
+\item \textbf{Framing matters as much as the algorithm.} Choosing the decision threshold (tabular), combining two representations
+(text) and predicting the change instead of the level (time series) each helped more than hyperparameter tuning did.
+\item \textbf{Errors are explainable.} Online-travel-agency bookings, overlapping news sections and winter cold surges account for
+most mistakes, and each was anticipated by the exploratory analysis.
+\end{enumerate}
+
+\section{Limitations and next steps}
+The tabular model was evaluated with a random split and would need a chronological test before deployment; the news dataset
+covers one newspaper and one short period; the weather model uses only local variables and a reanalysis grid cell. The most
+promising next steps are a time-based evaluation for the hotel data, a second crawl a few months later to measure how the text
+model ages, and upstream weather features to anticipate cold surges earlier.
+
+% ------------------------------------------------------------------
+\appendix
+\chapter{Links and reproduction}\label{app:links}
+\begin{table}[H]\centering\small
+\caption{Full addresses of every deliverable.}\label{app:tab-links}
+\begin{tabularx}{\linewidth}{L{3.4cm}Y}
+\toprule \hd{Item} & \hd{Address} \\ \midrule
+Website (landing page) & \grpPages \\
+Source repository & \grpRepo \\
+Tabular — page & \TBPage \\
+Tabular — notebook & \TBNotebook \\
+Tabular — video & \TBVideo \\
+Text — page & \TXPage \\
+Text — notebook & \TXNotebook \\
+Text — video & \TXVideo \\
+Time series — page & \TSPage \\
+Time series — notebook & \TSNotebook \\
+Time series — video & \TSVideo \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Re-running the analyses.} Open a notebook from the repository in Google Colab (\emph{File → Open notebook → GitHub}) and
+choose \emph{Runtime → Run all}. Each notebook loads its data from the repository and needs only the libraries pre-installed on
+Colab; the text notebook additionally downloads the \code{multilingual-e5-small} model on first run.
+
+\textbf{Rebuilding the website and reports} (from the repository root):
+\begin{itemize}
+\item \code{python tools/build\_pages.py} — regenerates the three project pages from the executed notebooks;
+\item \code{python tools/build\_reports.py} — regenerates these PDF reports (XeLaTeX) from the notebooks' saved results.
+\end{itemize}
+\end{document}

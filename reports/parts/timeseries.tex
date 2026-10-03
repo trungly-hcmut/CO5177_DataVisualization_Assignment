@@ -1,0 +1,259 @@
+% Body of the Time-series report — used by timeseries.tex (as an article) and G3-report.tex (as a chapter).
+% Every number comes from generated/timeseries.tex (built from timeseries/results.json).
+
+\section{Problem and objective}\label{ts:problem}
+Hanoi has a real winter: cold surges of the north-east monsoon can cut the temperature by 5–10~°C within a day, and those
+are exactly the days when a forecast matters most for health, energy use and agriculture.
+
+\textbf{Objective.} Forecast \textbf{tomorrow's daily mean temperature in Hanoi} from today's and past weather, then measure
+how quickly forecast skill decays when predicting up to seven days ahead.
+
+\textbf{How success is measured.} Mean absolute error (MAE, °C) on a chronologically held-out test period, and \emph{skill}
+relative to simple baselines — above all \emph{persistence} (``tomorrow = today''), which is hard to beat for one-day forecasts.
+
+\section{Dataset}\label{ts:dataset}
+The data was downloaded by the group from the \textbf{Open-Meteo Historical Weather API} \cite{ts-openmeteo} (free, no API
+key, CC BY 4.0), which serves the \textbf{ERA5 reanalysis} \cite{ts-era5}: a physically consistent reconstruction of past
+weather on a 9–25~km grid, combining a weather model with millions of observations. The exact request is included in the
+notebook (\code{fetch\_open\_meteo}); \emph{Run all} uses the saved CSV so results are reproducible.
+
+\begin{itemize}
+\item Location: central Hanoi (21.03~°N, 105.85~°E; nearest grid cell 21.05~°N, 105.90~°E, elevation 19~m).
+\item Period: \TSStart{} – \TSEnd{}, daily, local time (GMT+7): \TSDays{} consecutive days, \TSVars{} variables.
+\end{itemize}
+
+\begin{table}[H]\centering\small
+\caption{Variables. The target is the daily mean temperature.}\label{ts:tab-vars}
+\begin{tabularx}{\linewidth}{L{6.4cm}lY}
+\toprule \hd{Variable} & \hd{Unit} & \hd{Meaning} \\ \midrule
+\code{temperature\_2m\_mean} / \code{\_max} / \code{\_min} & °C & daily mean (\textbf{target}), maximum, minimum at 2~m \\
+\code{apparent\_temperature\_mean} & °C & ``feels-like'' temperature \\
+\code{precipitation\_sum}, \code{precipitation\_hours} & mm, h & daily rain and rainy hours \\
+\code{relative\_humidity\_2m\_mean}, \code{dew\_point\_2m\_mean} & \%, °C & moisture \\
+\code{pressure\_msl\_mean} & hPa & mean sea-level pressure \\
+\code{cloud\_cover\_mean} & \% & cloud cover \\
+\code{wind\_speed\_10m\_max}, \code{wind\_direction\_10m\_dominant} & km/h, ° & maximum wind speed, dominant direction \\
+\code{shortwave\_radiation\_sum}, \code{sunshine\_duration} & MJ/m², s & solar energy, sunshine \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]\centering\small
+\caption{General requirements (section 4.1 and 5) and how this dataset meets them.}\label{ts:tab-req}
+\begin{tabularx}{\linewidth}{L{4.2cm}Yl}
+\toprule \hd{Requirement} & \hd{This dataset} & \hd{Status} \\ \midrule
+Enough samples & \TSDays{} days & \met \\
+Numerical columns (scaling) & \TSVars{} weather variables plus engineered lags & \met \\
+Categorical columns (encoding) & derived: season and 8-sector wind direction (one-hot), circular encodings & \met \\
+Missing values handled & none in the source (verified); gaps simulated to compare imputation methods (Section~\ref{ts:missing}) & \met \\
+Time-aware split & train / validation / test by date; time-series cross-validation & \met \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Exploratory data analysis}\label{ts:eda}
+\fig{ts_02_seasonality}{Left: climatology by day of year (mean, ±1 standard deviation, record range). Right: mean absolute day-to-day change by month.\label{ts:fig-season}}
+\begin{finding}
+\Q How different are the seasons — and when is the weather hardest to predict?
+\F Summer (June–August) averages \textbf{\TSSummer~°C} and winter (December–February) \textbf{\TSWinter~°C}, a swing of about
+\TSSeasonGap~°C. Winter is also far more \emph{variable}: the standard deviation within January is \TSJanStd~°C versus
+\TSJulStd~°C in July, and the average day-to-day change peaks in February–March (\TSDtdFeb–\TSDtdMar~°C) against \TSDtdJul~°C
+in July. Forecasting should therefore be hardest in winter and spring.
+\end{finding}
+
+\fig{ts_03_trend}{Left: annual mean temperature with a linear trend. Right: monthly anomaly versus the 2005–2024 average (blue = colder, red = warmer).\label{ts:fig-trend}}
+\begin{finding}
+\Q Is Hanoi getting warmer?
+\F The annual mean rises by \textbf{\TSTrend~°C per decade} over 2005–2025; 2021–25 averaged \TSLastFive~°C against
+\TSFirstFive~°C in 2005–09 (\TSDeltaFive~°C). Large cold anomalies cluster in the early years (February 2008, January–February
+2011) and recent years are mostly warm. Twenty-one years is short and year-to-year swings are large (\TSAnnualMin~°C in
+\TSAnnualMinYear{} vs \TSAnnualMax~°C in \TSAnnualMaxYear), so the slope is uncertain — but it matters for modelling: a
+climatology learned on 2005–2021 will be slightly too cold for 2024–2026 (Section~\ref{ts:results}).
+\end{finding}
+
+\begin{figure}[H]\centering
+\begin{subfigure}[t]{0.58\linewidth}\centering\includegraphics[width=\linewidth]{ts_04_acf}
+\caption{Autocorrelation of temperature and of its anomaly.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.4\linewidth}\centering\includegraphics[width=\linewidth]{ts_05_cold_surge}
+\caption{Pressure change today vs temperature change tomorrow (Nov–Mar).}\end{subfigure}
+\caption{Memory of the series and the cold-surge signal.\label{ts:fig-memory}}
+\end{figure}
+\begin{finding}
+\Q How much does today tell us about tomorrow, and can we see a cold surge coming?
+\F The raw series is dominated by the yearly cycle (autocorrelation \TSAcfYear{} at lag 365). Once the season is removed, the
+anomaly still has strong day-to-day memory (\textbf{\TSAcfAnomOne{} at lag 1}) that fades to \textbf{\TSAcfAnomSeven{} by lag 7}:
+a warm or cold spell ``remembers'' itself for only a few days. In the cold season a pressure rise today warns of cooling
+tomorrow (r = \TSR): on the \TSNRise{} days when pressure rose by more than 3~hPa, the next day changed by \TSDTRise~°C on
+average (vs \TSDTOther~°C otherwise) and a drop of more than 2~°C was \textbf{\TSPRatio× as likely} (\TSPRise{} vs \TSPOther).
+\end{finding}
+
+\section{Data preparation}\label{ts:prep}
+\subsection{Continuity and missing values}\label{ts:missing}
+A time series must be checked for missing \emph{dates}, not only missing cells, because a skipped day silently shifts every
+lag feature. The file has \TSDays{} rows for \TSDays{} calendar days, no duplicated dates and \TSMissingDates{} missing cells.
+Real station data is rarely this clean, so we used the complete series as ground truth for an experiment: hide random blocks of
+1–30 consecutive days (about 5\% of the series, 5 repetitions) and reconstruct them with four methods.
+
+\begin{table}[H]\centering\small
+\caption{Imputation error (MAE in °C on the hidden days; best per gap length in bold).}\label{ts:tab-imputation}
+\input{generated/timeseries/imputation}
+\end{table}
+\begin{finding}
+\Q If a station lost data for a few days, how should the gap be filled — and does the answer depend on its length?
+\F For short gaps, \textbf{seasonal interpolation} (interpolating the anomaly, then adding the climatology back) is best:
+\TSImpSeasOne, \TSImpSeasThree{} and \TSImpSeasSeven~°C for 1, 3 and 7 days, slightly ahead of plain linear interpolation
+(\TSImpLinOne, \TSImpLinThree, \TSImpLinSeven). Forward fill is worst at every length. For gaps of \textbf{14 days or more,
+the seasonal normal alone wins} (\TSImpClimFourteen~°C), because the anomaly's memory (about a week) has run out. Rule:
+interpolate the anomaly up to about a week, fall back to climatology for longer outages.
+\end{finding}
+
+\subsection{Outliers}
+Temperature outliers must be judged against the season (12~°C is normal in January but extreme in July), so each day's anomaly
+is divided by the standard deviation for that day of the year and |z| > 3 is flagged. Only \TSExtremes{} days qualify, all
+cold (March 2011, early October 2011, September 2013): real cold spells, exactly what a forecast must handle, so they are
+\textbf{kept}. The record \TSColdest~°C of \TSColdestDate{} is not even flagged because January is so variable.
+Precipitation has \TSRainOutliers{} IQR outliers and skewness \TSRainSkew{} (maximum \TSRainMax~mm on \TSRainMaxDate); heavy
+rain is also real, so it is kept and fed to the models as \code{log1p(rain)} (skewness \TSRainSkewLog).
+
+\subsection{Features, encoding and scaling}
+For a forecast issued at the end of day \emph{t} for day \emph{t + h}, every feature must be known on day \emph{t}. The class
+\code{WeatherFeatureBuilder} builds them; its climatology is learned from the \textbf{training years only}.
+
+\begin{table}[H]\centering\small
+\caption{Features (30 in total) and their encoding.}\label{ts:tab-features}
+\begin{tabularx}{\linewidth}{L{3.5cm}YL{3.4cm}}
+\toprule \hd{Group} & \hd{Features} & \hd{Encoding / scaling} \\ \midrule
+Recent temperature & today; lags 1, 2, 3, 7, 14 days; rolling means over 3, 7, 30 days; today's max, min and range & standardised \\
+Anomaly & today − climatology (smoothed day-of-year mean) & standardised \\
+Weather today & humidity, dew point, pressure, pressure change over 1 and 3 days, cloud cover, wind speed, rain, radiation, sunshine & \code{log1p} for rain; standardised \\
+Wind direction & sine and cosine of the direction & circular (359° is next to 1°) \\
+Calendar of target day & day of year; climatology of the target day & sine/cosine (cyclical) \\
+Categorical & season of target day (DJF, MAM, JJA, SON); 8-sector wind direction (N, NE, …, NW) & one-hot \\
+\bottomrule
+\end{tabularx}
+\end{table}
+The first 30 days (rolling-window warm-up) and the last day (no target) are dropped. Scaling uses \code{StandardScaler} inside
+the pipeline; it is required by Ridge regression and harmless for tree models.
+
+\subsection{Time-based split}
+A random split would let the model learn from days \emph{after} the ones it is tested on. We split by the date being forecast:
+\textbf{train} 2005–2021 (\TSTrain{} days), \textbf{validation} 2022–2023 (\TSVal{} days) and \textbf{test} 1~January~2024 –
+\TSEnd{} (\TSTest{} days). Hyperparameters are tuned with \code{TimeSeriesSplit} (5 expanding windows inside the training years),
+which always trains on the past and validates on the following period.
+
+\section{Modelling}\label{ts:models}
+\textbf{Baselines.} \emph{Persistence} (tomorrow = today); \emph{climatology} (the average for that calendar day); and
+\emph{damped anomaly persistence} (climatology + φ × today's anomaly, with φ = \TSPhi, the lag-1 autocorrelation of anomalies
+in the training years).
+
+\textbf{Machine-learning models.} Ridge regression, Random Forest and HistGradientBoosting (HGB), all in the same
+pipeline. HGB is trained either on the temperature itself or on the \textbf{change} ΔT = T(t+1) − T(t), adding today's value
+back afterwards (\code{DeltaRegressor} class). Trees cannot extrapolate beyond the range seen in training, and a warming climate
+makes that a real risk; predicting the change avoids it.
+
+\textbf{Tuning.} A random search over 20 HGB configurations (scikit-learn defaults included) with time-series cross-validation
+preferred a more regularised model (CV MAE \TSCvTuned{} vs \TSCvDefault{} for the defaults), but it did \emph{worse} on
+2022–2023 (\TSValTuned{} vs \TSValFinal). A 0.015~°C gain on older folds is within year-to-year noise, so the final model is
+the one chosen on validation: HGB on the change, with default hyperparameters.
+
+\begin{table}[H]\centering\small
+\caption{One-day-ahead forecasts: validation (2022–2023) and test (2024 – September 2026) scores. Skill = 1 − MAE / MAE of persistence (test).}\label{ts:tab-models}
+\input{generated/timeseries/models}
+\end{table}
+\begin{finding}
+\Q Do machine-learning models beat the classical baselines, and which framing works best?
+\F Every model beats every baseline. HGB predicting the change is best on validation (\TSValFinal~°C, \TSValSkill{} below
+persistence at \TSValPersist) and beats HGB predicting the level (\TSValLevel). Ridge regression is weakest (\TSValRidge): the
+useful signals interact non-linearly — a northerly wind matters mostly in winter. Damped anomaly persistence barely improves on
+persistence (\TSValDamped) and climatology alone is poor (\TSValClim~°C): for \emph{tomorrow}, today's weather matters far more
+than the calendar.
+\end{finding}
+
+\section{Results on the test set}\label{ts:results}
+On the \TSTest{} unseen days the final model reaches \textbf{MAE \TSTestFinal~°C, RMSE \TSTestRmse~°C and R² \TSTestRtwo},
+a \textbf{\TSTestSkill{} lower error than persistence} (\TSTestPersist~°C); the ranking of all models matches validation
+(Table~\ref{ts:tab-models}).
+
+\fig[0.86\linewidth]{ts_10_forecast_vs_actual}{Forecast versus actual over the whole test period (top) and the hardest winter window (bottom), with persistence for comparison.\label{ts:fig-forecast}}
+
+\begin{table}[H]\centering\small
+\caption{Test MAE by month (bold = final model better than persistence).}\label{ts:tab-months}
+\footnotesize\setlength{\tabcolsep}{3.6pt}
+\input{generated/timeseries/months}
+\end{table}
+
+\begin{table}[H]\centering\small
+\caption{The \TSWorstN{} largest test errors (°C; pressure change on the forecast day in hPa).}\label{ts:tab-worst}
+\input{generated/timeseries/worst}
+\end{table}
+\begin{finding}
+\Q When does the model fail?
+\F The biggest gains over persistence come in winter and spring — February \TSMoFebModel{} vs \TSMoFebPersist, March
+\TSMoMarModel{} vs \TSMoMarPersist, December \TSMoDecModel{} vs \TSMoDecPersist~°C — while the model is slightly worse in the
+transition months (April \TSMoAprModel{} vs \TSMoAprPersist, November \TSMoNovModel{} vs \TSMoNovPersist). \textbf{\TSWorstCold{} of
+the \TSWorstN{} worst forecasts are cold surges}: the temperature fell \TSWorstDropMin–\TSWorstDropMax~°C in one day and the
+forecast was \TSWorstErrMin–\TSWorstErrMax~°C too warm, usually after a pressure rise that the model reacted to only partly. On
+average the residual is \TSResMean~°C (standard deviation \TSResStd): forecasts are slightly too cold, consistent with the
+warming of Figure~\ref{ts:fig-trend}.
+\end{finding}
+
+\section{Extra experiments}\label{ts:extra}
+\subsection{How far ahead is the model useful?}
+The features are rebuilt and the final configuration retrained for horizons of 1 to 7 days; all methods are scored on the same
+test period.
+
+\begin{table}[H]\centering\small
+\caption{Test MAE (°C) by forecast horizon (best per horizon in bold).}\label{ts:tab-horizon}
+\input{generated/timeseries/horizon}
+\end{table}
+\fig[0.78\linewidth]{ts_13_horizon}{Forecast error versus horizon on the test period.\label{ts:fig-horizon}}
+\begin{finding}
+\Q At what horizon does the model stop beating simple baselines?
+\F The model beats every baseline for \textbf{1 to \TSUseful{} days ahead} (MAE \TSHOne, \TSHTwo, \TSHThree, \TSHFour~°C vs
+\TSHOneBase, \TSHTwoBase, \TSHThreeBase, \TSHFourBase{} for the best baseline). From day 5 all methods converge on climatology
+(about \TSClim~°C): the anomaly memory has faded, exactly as the autocorrelation of Figure~\ref{ts:fig-memory} predicted.
+Persistence becomes worse than the seasonal average from day \TSPersistCross{} (\TSPersistCrossMae~°C).
+\end{finding}
+
+\subsection{What drives the predicted change?}
+\fig[0.78\linewidth]{ts_12_importance}{Permutation importance of each feature for the predicted one-day change (test set).\label{ts:fig-importance}}
+\begin{finding}
+\Q Which signals does the model use to predict tomorrow's change?
+\F Today's \textbf{anomaly} (\TSImpAnom) comes first — an unusually warm day tends to cool back towards normal and vice versa.
+Next is the \textbf{north–south component of the wind} (\TSImpWind): a northerly wind brings cold air, the signature of a cold
+surge. Rain (\TSImpRain) and cloud cover (\TSImpCloud) follow, as they suppress daytime heating. The one-day pressure change is
+used (\TSImpDp) but ranks lower than Figure~\ref{ts:fig-memory} suggests, because the wind direction carries much of the same
+information.
+\end{finding}
+
+\section{Conclusions}\label{ts:conclusion}
+\begin{enumerate}
+\item \textbf{Machine learning beats the classical baselines, modestly}: \TSTestSkill{} lower test MAE than persistence
+(\TSTestFinal{} vs \TSTestPersist~°C). Framing the target as the \emph{change} helped more than hyperparameter tuning.
+\item \textbf{The hard days are cold surges.} Winter and spring are where the model gains most and where its worst misses happen;
+the physical signals — northerly wind, rising pressure, today's anomaly — are what it learned to use.
+\item \textbf{Skill fades after about \TSUseful{} days}, when every method converges on the seasonal average, matching the
+roughly one-week memory of temperature anomalies.
+\item \textbf{Data preparation lessons}: split by time, never randomly; fit the climatology on training years only; fill short
+gaps by interpolating the anomaly and long gaps with climatology.
+\item \textbf{Hanoi is warming} by about \TSTrend~°C per decade in this record — enough to leave a \TSResMean~°C bias in
+forecasts trained on earlier years.
+\end{enumerate}
+\textbf{Limitations.} ERA5 is a smoothed grid-cell value rather than a thermometer in the city; real station data would be
+noisier. The forecast uses the complete weather of day \emph{t}, slightly more than an evening forecast would have. Only local
+variables are used, while cold surges start hundreds of kilometres to the north.
+
+\textbf{Future work.} Add upstream features (pressure and temperature in southern China a day earlier) to see cold surges
+coming; use hourly data for 24-hour forecasts; produce probabilistic forecasts (quantile regression) to warn of large drops;
+compare with archived forecasts from a physics-based weather model; retrain regularly to follow the warming trend.
+
+\begin{thebibliography}{9}
+\bibitem{ts-openmeteo} Open-Meteo. \emph{Historical Weather API} (weather data by Open-Meteo.com, CC BY 4.0).
+  \url{https://open-meteo.com/en/docs/historical-weather-api}
+\bibitem{ts-era5} H.~Hersbach et al. \emph{The ERA5 global reanalysis}. Quarterly Journal of the Royal Meteorological Society,
+  146 (730), 2020, 1999--2049. \url{https://doi.org/10.1002/qj.3803}
+\bibitem{ts-sklearn} F.~Pedregosa et al. \emph{Scikit-learn: Machine Learning in Python}. Journal of Machine Learning
+  Research, 12 (2011), 2825--2830.
+\bibitem{ts-nb} Group G3. \emph{Notebook} \code{G3\_TimeSeries\_HanoiWeather.ipynb}. \TSNotebook
+\bibitem{ts-page} Group G3. \emph{Project page (rendered notebook, report and video)}. \TSPage\ — video: \TSVideo
+\end{thebibliography}

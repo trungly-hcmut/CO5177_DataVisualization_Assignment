@@ -278,5 +278,155 @@
     "t_mean30": 0.0247,
     "pressure_0": 0.0235,
     "t_mean7": 0.0194
+  },
+  "seasons": {
+    "summer_mean": 28.717984189723317,
+    "winter_mean": 17.370368474923232,
+    "jan_std": 3.4001419162343445,
+    "jul_std": 1.6211121275739637,
+    "day_to_day_by_month": {
+      "1": 1.341,
+      "2": 1.422,
+      "3": 1.491,
+      "4": 1.305,
+      "5": 1.154,
+      "6": 0.991,
+      "7": 0.778,
+      "8": 0.859,
+      "9": 0.875,
+      "10": 0.858,
+      "11": 1.113,
+      "12": 1.356
+    }
+  },
+  "annual": {
+    "first5": 23.49900561419268,
+    "last5": 24.13085171045737,
+    "values": {
+      "2005": 23.56,
+      "2006": 23.77,
+      "2007": 23.61,
+      "2008": 22.71,
+      "2009": 23.84,
+      "2010": 23.98,
+      "2011": 22.32,
+      "2012": 23.49,
+      "2013": 23.27,
+      "2014": 23.48,
+      "2015": 24.29,
+      "2016": 23.97,
+      "2017": 23.71,
+      "2018": 23.73,
+      "2019": 24.59,
+      "2020": 24.19,
+      "2021": 24.15,
+      "2022": 23.47,
+      "2023": 24.54,
+      "2024": 24.6,
+      "2025": 23.89
+    }
+  },
+  "acf": {
+    "lag365": 0.7125965113757172,
+    "lag730": 0.682589204692167,
+    "anom_lag1": 0.8124503630174477,
+    "anom_lag7": 0.11046852803262003
+  },
+  "cold_surge_extra": {
+    "n_rise": 404,
+    "p_drop2_rise": 0.26485148514851486,
+    "p_drop2_other": 0.0964697658161482
+  },
+  "precip": {
+    "iqr_outliers": 1001,
+    "skew": 5.180624257343757,
+    "skew_log": 0.9500845589487337,
+    "max": 227.3,
+    "max_date": "2010-06-21"
+  },
+  "extreme_dates": [
+    "2011-03-16",
+    "2011-03-17",
+    "2011-10-03",
+    "2011-10-04",
+    "2011-10-05",
+    "2011-10-06",
+    "2011-10-07",
+    "2013-09-06",
+    "2013-09-26"
+  ],
+  "residual": {
+    "mean": -0.2693131569862186,
+    "std": 1.196504883609515
+  },
+  "worst_days": [
+    {
+      "date": "2025-03-29",
+      "actual": 17.0,
+      "forecast": 23.71,
+      "error": 6.71,
+      "change vs day before": -8.5,
+      "pressure change on forecast day (hPa)": 4.2
+    },
+    {
+      "date": "2026-02-08",
+      "actual": 15.0,
+      "forecast": 20.73,
+      "error": 5.73,
+      "change vs day before": -7.0,
+      "pressure change on forecast day (hPa)": 2.2
+    },
+    {
+      "date": "2025-11-18",
+      "actual": 17.8,
+      "forecast": 22.71,
+      "error": 4.91,
+      "change vs day before": -4.9,
+      "pressure change on forecast day (hPa)": -0.1
+    },
+    {
+      "date": "2024-02-23",
+      "actual": 19.3,
+      "forecast": 23.79,
+      "error": 4.49,
+      "change vs day before": -6.0,
+      "pressure change on forecast day (hPa)": 3.7
+    },
+    {
+      "date": "2025-01-26",
+      "actual": 14.9,
+      "forecast": 19.35,
+      "error": 4.45,
+      "change vs day before": -6.4,
+      "pressure change on forecast day (hPa)": 1.6
+    },
+    {
+      "date": "2024-04-29",
+      "actual": 31.7,
+      "forecast": 27.43,
+      "error": -4.27,
+      "change vs day before": 1.0,
+      "pressure change on forecast day (hPa)": 2.3
+    },
+    {
+      "date": "2024-02-07",
+      "actual": 15.7,
+      "forecast": 19.96,
+      "error": 4.26,
+      "change vs day before": -5.7,
+      "pressure change on forecast day (hPa)": 0.8
+    },
+    {
+      "date": "2024-01-22",
+      "actual": 11.3,
+      "forecast": 15.47,
+      "error": 4.17,
+      "change vs day before": -4.6,
+      "pressure change on forecast day (hPa)": 3.5
+    }
+  ],
+  "val_mae": {
+    "tuned": 0.9217975395203235,
+    "default": 0.9055596721422685
   }
 }

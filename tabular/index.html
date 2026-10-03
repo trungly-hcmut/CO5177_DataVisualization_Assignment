@@ -33,7 +33,7 @@
       <p class="project-lede">A classifier that flags risky hotel bookings using only what is known at booking time — and a close look at two evaluation traps that make scores look far better than they are.</p>
       <div class="project-actions">
         <a class="button button-primary" href="https://github.com/trungly-hcmut/CO5177_DataVisualization_Assignment/blob/main/tabular/G3_Tabular_HotelBooking.ipynb" target="_blank" rel="noreferrer">Notebook on GitHub <span>↗</span></a>
-        <span class="button button-lime" aria-disabled="true">PDF report<small>coming soon</small></span>
+        <a class="button button-lime" href="report.pdf" target="_blank" rel="noreferrer">PDF report <span>↗</span></a>
         <span class="button button-outline" aria-disabled="true">Video on YouTube<small>coming soon</small></span>
       </div>
     </section>
@@ -1647,29 +1647,29 @@ Lead time 0–7 days: 9.6%  |  &gt;365 days: 67.7%
 <div class="prompt output_prompt">Out[15]:</div>
 <div class="output_html rendered_html output_subarea output_execute_result"><style type="text/css">
 </style>
-<table id="T_86ed0">
+<table id="T_6b5ee">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_86ed0_level0_col0">rows</th>
-<th class="col_heading level0 col1" id="T_86ed0_level0_col1">cancellation rate</th>
+<th class="col_heading level0 col0" id="T_6b5ee_level0_col0">rows</th>
+<th class="col_heading level0 col1" id="T_6b5ee_level0_col1">cancellation rate</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_86ed0_level0_row0">train</th>
-<td class="data row0 col0" id="T_86ed0_row0_col0">60,187</td>
-<td class="data row0 col1" id="T_86ed0_row0_col1">27.58%</td>
+<th class="row_heading level0 row0" id="T_6b5ee_level0_row0">train</th>
+<td class="data row0 col0" id="T_6b5ee_row0_col0">60,187</td>
+<td class="data row0 col1" id="T_6b5ee_row0_col1">27.58%</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_86ed0_level0_row1">validation</th>
-<td class="data row1 col0" id="T_86ed0_row1_col0">12,897</td>
-<td class="data row1 col1" id="T_86ed0_row1_col1">27.58%</td>
+<th class="row_heading level0 row1" id="T_6b5ee_level0_row1">validation</th>
+<td class="data row1 col0" id="T_6b5ee_row1_col0">12,897</td>
+<td class="data row1 col1" id="T_6b5ee_row1_col1">27.58%</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_86ed0_level0_row2">test</th>
-<td class="data row2 col0" id="T_86ed0_row2_col0">12,898</td>
-<td class="data row2 col1" id="T_86ed0_row2_col1">27.59%</td>
+<th class="row_heading level0 row2" id="T_6b5ee_level0_row2">test</th>
+<td class="data row2 col0" id="T_6b5ee_row2_col0">12,898</td>
+<td class="data row2 col1" id="T_6b5ee_row2_col1">27.59%</td>
 </tr>
 </tbody>
 </table>
@@ -2908,8 +2908,17 @@ Not cancelled      0.911     0.835     0.871      9340
     <span class="s2">"confusion_matrix"</span><span class="p">:</span> <span class="n">cm</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
     <span class="s2">"importance"</span><span class="p">:</span> <span class="n">imp</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
     <span class="s2">"segments"</span><span class="p">:</span> <span class="n">seg</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">"index"</span><span class="p">),</span>
+    <span class="s2">"eda"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"deposit_cancel_rate"</span><span class="p">:</span> <span class="n">dep</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s2">"lead_0_7"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">lead</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">"lead_over_365"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">lead</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="s2">"special_0"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">sr</span><span class="p">[</span><span class="s2">"0"</span><span class="p">]),</span> <span class="s2">"special_3plus"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">sr</span><span class="p">[</span><span class="s2">"3+"</span><span class="p">]),</span>
+            <span class="s2">"segment_cancel_rate"</span><span class="p">:</span> <span class="n">eda</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"market_segment"</span><span class="p">)[</span><span class="s2">"is_canceled"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+            <span class="s2">"nonrefund_before"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">nr_before</span><span class="p">),</span> <span class="s2">"nonrefund_after"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">nr_after</span><span class="p">),</span>
+            <span class="s2">"missing_pct"</span><span class="p">:</span> <span class="n">missing</span><span class="p">[</span><span class="s2">"%"</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s2">"checks"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">checks</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="s2">"cleaning_log"</span><span class="p">:</span> <span class="n">cleaner</span><span class="o">.</span><span class="n">report</span><span class="p">()</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">"records"</span><span class="p">),</span>
+            <span class="s2">"skew"</span><span class="p">:</span> <span class="n">skew_tbl</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">"index"</span><span class="p">),</span>
+            <span class="s2">"spearman_with_target"</span><span class="p">:</span> <span class="n">corr</span><span class="p">[</span><span class="s2">"is_canceled"</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()},</span>
 <span class="p">}</span>
-<span class="n">Path</span><span class="p">(</span><span class="s2">"results.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">Path</span><span class="p">(</span><span class="s2">"results.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                           <span class="n">default</span><span class="o">=</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"item"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="p">)))</span>
 <span class="n">summary</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
     <span class="s2">"validation"</span><span class="p">:</span> <span class="n">val_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">"HGB (tuned)"</span><span class="p">],</span>
     <span class="s2">"test (optimal threshold)"</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">test_scores</span><span class="p">),</span>

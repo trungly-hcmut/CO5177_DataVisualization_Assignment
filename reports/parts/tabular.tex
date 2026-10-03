@@ -1,0 +1,247 @@
+% Body of the Tabular report — used by tabular.tex (as an article) and G3-report.tex (as a chapter).
+% Every number comes from generated/tabular.tex (built from tabular/results.json).
+
+\section{Problem and objective}\label{tb:problem}
+Hotels take bookings weeks or months in advance, yet \TBCancelRaw{} of the bookings in our dataset were cancelled.
+A hotel that can tell, at booking time, which reservations are likely to be cancelled can overbook in a controlled way,
+ask guests to reconfirm, or require a deposit for risky bookings.
+
+\textbf{Objective.} Build a binary classifier that predicts \code{is\_canceled} (1 = cancelled) using only information
+that is available when the booking is made, and measure honestly how well it works on bookings it has never seen.
+
+\textbf{How success is measured.} Cancellations are the minority class, so accuracy is misleading: a model that always
+answers ``not cancelled'' is already \TBNotCancelClean{} accurate on the cleaned data while catching no cancellation at all.
+We therefore report \textbf{F1, recall, ROC-AUC and PR-AUC} (average precision), select models on a validation set, and
+touch the test set only once.
+
+\section{Dataset}\label{tb:dataset}
+\textbf{Hotel Booking Demand} \cite{tb-antonio} contains real bookings from two hotels in Portugal — a \emph{City Hotel} in
+Lisbon and a \emph{Resort Hotel} in the Algarve — with arrival dates from July 2015 to August 2017 (licence CC BY 4.0).
+Each row is one booking: \TBRowsRaw{} rows and \TBColsRaw{} columns, of which 20 are numerical and 12 categorical.
+
+\begin{table}[H]\centering\small
+\caption{Column groups of the dataset.}\label{tb:tab-columns}
+\begin{tabularx}{\linewidth}{L{2.5cm}YL{4.1cm}}
+\toprule \hd{Group} & \hd{Columns} & \hd{Meaning} \\ \midrule
+Target & \code{is\_canceled} & 1 if the booking was cancelled \\
+Timing & \code{lead\_time}, \code{arrival\_date\_*} & days booked in advance; arrival date \\
+Stay & \code{stays\_in\_weekend\_nights}, \code{stays\_in\_week\_nights}, \code{adults}, \code{children}, \code{babies} & nights and guests \\
+Channel \& guest & \code{market\_segment}, \code{distribution\_channel}, \code{customer\_type}, \code{country}, \code{agent}, \code{company}, \code{is\_repeated\_guest} & booking source, customer type, nationality \\
+History & \code{previous\_cancellations}, \code{previous\_bookings\_not\_canceled} & the guest's past behaviour \\
+Service \& price & \code{meal}, \code{reserved\_room\_type}, \code{deposit\_type}, \code{adr}, \code{required\_car\_parking\_spaces}, \code{total\_of\_special\_requests}, \code{booking\_changes}, \code{days\_in\_waiting\_list} & meal plan, room, deposit, average daily rate (ADR) \\
+\textbf{Leakage} & \code{reservation\_status}, \code{reservation\_status\_date}, \code{assigned\_room\_type} & known only \emph{after} arrival or cancellation — dropped \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]\centering\small
+\caption{Assignment requirements for tabular data (section 4.2) and how this dataset meets them.}\label{tb:tab-req}
+\begin{tabularx}{\linewidth}{L{4.0cm}Yl}
+\toprule \hd{Requirement} & \hd{This dataset} & \hd{Status} \\ \midrule
+At least 2,000 samples & \TBRowsRaw{} bookings (\TBRowsClean{} after cleaning) & \met \\
+At least 10 columns & \TBColsRaw{} columns & \met \\
+Missing values & \code{company} \TBMissCompany, \code{agent} \TBMissAgent, \code{country} \TBMissCountry, \code{children}; plus hidden \code{Undefined} values & \met \\
+Categorical columns (encoding) & 12, e.g. \code{hotel}, \code{meal}, \code{country}, \code{market\_segment}, \code{deposit\_type} & \met \\
+Numerical columns (scaling) & 20, e.g. \code{lead\_time}, \code{adr}, \code{stays\_in\_week\_nights} & \met \\
+Harder data (preferred) & imbalance (\TBNotCancelRaw{} / \TBCancelRaw{} raw, \TBNotCancelClean{} / \TBCancelClean{} after cleaning), outliers (ADR up to 5,400), \TBDupPct{} duplicates, target leakage & \met \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Exploratory data analysis}\label{tb:eda}
+\subsection{Data quality}
+Table~\ref{tb:tab-quality} lists every quality problem we found and what we did about it. Missing values are not always
+errors: a missing \code{company} means ``not booked through a company'', so it becomes a binary flag rather than a deletion.
+The dataset also hides missing values behind the string \code{Undefined}.
+
+\begin{table}[H]\centering\small
+\caption{Data-quality issues and the action taken for each.}\label{tb:tab-quality}
+\begin{tabularx}{\linewidth}{L{3.6cm}L{3.9cm}Y}
+\toprule \hd{Issue} & \hd{Affected} & \hd{Action} \\ \midrule
+Missing \code{company} & \TBMissCompany{} of rows & flag \code{has\_company} (missing = no company) \\
+Missing \code{agent} & \TBMissAgent{} of rows & flag \code{has\_agent} (missing = booked directly) \\
+Missing \code{country}, \code{children} & \TBMissCountry{} of rows; 4 rows & most-frequent / median imputation, fitted on train \\
+Hidden \code{Undefined} & \code{meal} \TBMissMeal; \code{market\_segment} 2 rows; \code{distribution\_channel} 5 rows & \code{meal}: Undefined = SC (per documentation); others → missing → most frequent \\
+Duplicated rows & \TBDupRows{} (\TBDupPct) & removed before splitting \\
+Invalid bookings & \TBZeroGuests{} with 0 guests; \TBAdrBad{} with ADR $<0$ or $>1{,}000$ & removed \\
+0-night bookings & \TBZeroNights{} rows & kept — day use is a valid booking \\
+Leakage columns & 3 columns & dropped (Section~\ref{tb:traps} shows why) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Removing duplicates changes the picture: the cancellation rate falls from \TBCancelRaw{} to \TBCancelClean{}, because most
+copies were \emph{cancelled} group bookings. In particular, \TBNrDupPct{} of the \code{Non Refund} bookings were copies
+(\TBNrBefore{} → \TBNrAfter). The clean data is therefore more imbalanced (\TBNotCancelClean{} / \TBCancelClean).
+
+\subsection{Cancellation versus key features}
+\fig{tab_03_target_vs_features}{Cancellation rate by lead time, deposit type, market segment and number of special requests
+(raw data, groups with at least 100 bookings). The horizontal line is the overall rate.\label{tb:fig-target}}
+\begin{finding}
+\Q Which booking-time attributes are most strongly associated with cancellation?
+\F \textbf{Lead time}: \TBLeadShort{} of bookings made at most 7 days ahead are cancelled, versus \TBLeadLong{} of bookings
+made more than a year ahead. \textbf{Non Refund} deposits are cancelled \TBDepNR{} of the time (vs \TBDepNo{} for no deposit)
+— counter-intuitive, and largely produced by the duplicated group blocks found above. \textbf{Groups} cancel most
+(\TBSegGroups), \textbf{Direct} (\TBSegDirect) and \textbf{Corporate} (\TBSegCorporate) least. Guests with \textbf{special
+requests} cancel far less (\TBSpecialZero{} with none vs \TBSpecialThree{} with three or more).
+\end{finding}
+
+\subsection{Distributions, outliers and correlation}
+The numerical columns are strongly right-skewed and contain thousands of points beyond the IQR fences. Most are real
+(bookings made two years ahead, expensive suites), so we do not delete them; we clip and transform them instead
+(Section~\ref{tb:prep}). Spearman correlations with the target are only weak to moderate — \code{lead\_time}
+\TBRhoLead, \code{previous\_cancellations} \TBRhoPrevCancel, \code{total\_of\_special\_requests} \TBRhoSpecial,
+\code{required\_car\_parking\_spaces} \TBRhoParking{} — so no single column decides the outcome and a multivariate,
+non-linear model is needed.
+
+\section{Data preparation}\label{tb:prep}
+All steps that learn a parameter (medians, clipping quantiles, means and standard deviations, one-hot categories) are
+fitted on the training set only, inside a scikit-learn \code{Pipeline} with a \code{ColumnTransformer}. Row-level cleaning
+learns nothing from the data, so it is done before splitting. The notebook implements the steps as reusable classes:
+\code{HotelDataCleaner} (row cleaning with a log), \code{HotelFeatureBuilder} and \code{Winsorizer} (custom scikit-learn
+transformers) and \code{ModelBenchmark} (trains and scores many models the same way).
+
+\begin{table}[H]\centering\small
+\caption{Preparation pipeline.}\label{tb:tab-pipeline}
+\begin{tabularx}{\linewidth}{L{2.9cm}YL{2.2cm}}
+\toprule \hd{Step} & \hd{What is done} & \hd{Fitted on} \\ \midrule
+Row cleaning & drop leakage columns; remove invalid bookings; remove \TBDupRemoved{} duplicates & — (rules) \\
+Feature engineering & \code{total\_nights}, \code{total\_guests}, \code{has\_children}, \code{is\_weekend\_only}, \code{has\_agent}, \code{has\_company}, \code{is\_domestic}, \code{arrival\_weekday}; cyclical \code{month\_sin}/\code{month\_cos} & — (stateless) \\
+Missing values & median (numerical), most frequent (categorical) & train \\
+Outliers & \code{Winsorizer}: clip to the 0.5\%–99.5\% quantiles & train \\
+Skewness & \code{log1p} on count/day columns; not on \code{adr} (1.6\% zeros) & — \\
+Encoding & \code{OneHotEncoder}, categories below 0.5\% merged into ``infrequent'' → \TBNOneHot{} columns & train \\
+Scaling & \code{StandardScaler} on the \TBNNumeric{} numerical features & train \\
+Split & stratified 70 / 15 / 15: \TBTrain{} / \TBVal{} / \TBTest{} bookings & — \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\fig[0.9\linewidth]{tab_06_scaling}{Distributions of \code{lead\_time} and \code{adr} before and after preprocessing (training set).\label{tb:fig-scaling}}
+\begin{finding}
+\Q How does preprocessing change the two most important numerical features?
+\F Both end with mean 0 and standard deviation 1. The skewness of \code{lead\_time} drops from \TBSkewLeadBefore{} to
+\TBSkewLeadAfter{} and that of \code{adr} from \TBSkewAdrBefore{} to \TBSkewAdrAfter. A first version also applied
+\code{log1p} to \code{adr} and made its skewness \emph{worse} (−3.6) because complimentary rooms cost 0 — which is why
+\code{adr} has its own branch.
+\end{finding}
+
+\section{Modelling}\label{tb:models}
+\subsection{Model comparison}
+Five classifiers share the same preprocessing pipeline: a dummy baseline, Logistic Regression, a Decision Tree (depth 12),
+a Random Forest (200 trees) and HistGradientBoosting (HGB).
+
+\begin{table}[H]\centering\small
+\caption{Validation scores (threshold 0.5). The tuned model is described in Section~\ref{tb:tuning}.}\label{tb:tab-val}
+\input{generated/tabular/val}
+\end{table}
+
+The dummy model reaches \TBValDummyAcc{} accuracy with F1 = 0, confirming that accuracy is not informative here. The two
+ensembles lead and are almost tied — HGB (F1 \TBValHgbF, PR-AUC \TBValHgbPR) and Random Forest (F1 \TBValRfF, PR-AUC
+\TBValRfPR) — while Logistic Regression is last (F1 \TBValLrF, PR-AUC \TBValLrPR) despite careful scaling: the signal is
+non-linear and involves interactions (a long lead time is risky only in some segments).
+
+\subsection{Hyperparameter tuning}\label{tb:tuning}
+HGB was tuned with \code{RandomizedSearchCV} (12 configurations × 3-fold stratified cross-validation on the training set,
+scored by PR-AUC). The best configuration — \TBTuneParams{} — reached a cross-validated PR-AUC of \TBTuneCV{} and raised the
+validation PR-AUC from \TBValHgbPR{} to \TBValTunedPR{} (F1 from \TBValHgbF{} to \TBValTunedF).
+
+\section{Results on the test set}\label{tb:results}
+The final model is the tuned HGB with the decision threshold chosen on the validation set (Section~\ref{tb:imbalance}).
+It was evaluated once on the \TBTest{} test bookings.
+
+\begin{table}[H]\centering\small
+\caption{Test-set results of the baseline and the final model.}\label{tb:tab-test}
+\input{generated/tabular/test}
+\end{table}
+
+\fig{tab_10_test_eval}{Final model on the test set: confusion matrix, ROC curve and precision–recall curve, compared with
+the Logistic Regression baseline.\label{tb:fig-test}}
+\begin{finding}
+\Q How good is the final model on bookings it has never seen?
+\F F1 rises from \TBTestLrF{} (baseline) to \textbf{\TBTestFinF} (\TBGainF), ROC-AUC from \TBTestLrROC{} to
+\textbf{\TBTestFinROC} and PR-AUC from \TBTestLrPR{} to \textbf{\TBTestFinPR}. Of the \TBPositives{} real cancellations
+the model catches \TBTP{} (recall \TBTestFinR); in exchange \TBFP{} bookings that were kept (\TBFPRate) are flagged by mistake.
+\end{finding}
+
+\section{Extra experiments}\label{tb:extra}
+\subsection{Two evaluation traps: leakage and duplicates}\label{tb:traps}
+\begin{table}[H]\centering\small
+\caption{Validation scores of the same HGB model under three data-handling scenarios.}\label{tb:tab-pitfalls}
+\input{generated/tabular/pitfalls}
+\end{table}
+\fig[0.82\linewidth]{tab_08_pitfalls}{F1 and PR-AUC when the cleaning steps are skipped.\label{tb:fig-pitfalls}}
+\begin{finding}
+\Q If we skipped the cleaning of Section~\ref{tb:prep}, how good would the scores look?
+\F Keeping the leakage columns gives \textbf{\TBLeakF{} on every metric}: the model just reads the answer from
+\code{reservation\_status}. Keeping duplicates inflates F1 from \TBCorrectF{} to \TBNodupF{} (\TBNodupGainF) and PR-AUC from
+\TBCorrectPR{} to \TBNodupPR{} (\TBNodupGainPR), because copies of the same booking appear in both training and validation.
+The honest figures are the lower ones.
+\end{finding}
+
+\subsection{Class imbalance and the decision threshold}\label{tb:imbalance}
+\begin{table}[H]\centering\small
+\caption{Three ways to handle the imbalance, on the tuned HGB model (validation set).}\label{tb:tab-imbalance}
+\input{generated/tabular/imbalance}
+\end{table}
+\fig{tab_09_imbalance}{Left: precision, recall and F1 as the threshold moves. Right: the three strategies compared.\label{tb:fig-imbalance}}
+\begin{finding}
+\Q Does handling the imbalance help, and how?
+\F At threshold 0.5 the model misses many cancellations (recall \TBImbDefR). Re-weighting the classes raises recall to
+\TBImbBalR{} and lowering the threshold to \TBThr{} raises it to \TBImbThrR; F1 rises from \TBImbDefF{} to \TBImbBalF{} with
+re-weighting and to \TBImbThrF{} with the tuned threshold. PR-AUC barely moves (\TBImbDefPR): handling imbalance shifts the operating point along the same
+curve — trading precision for recall — rather than making the model better at ranking. We keep the tuned threshold because
+it needs no retraining and can later be set from the hotel's real costs.
+\end{finding}
+
+\subsection{What the model relies on}
+\fig[0.82\linewidth]{tab_11_importance}{Permutation importance on the test set: drop in PR-AUC when one original column is shuffled.\label{tb:fig-importance}}
+\begin{finding}
+\Q Which columns does the model depend on most?
+\F \code{lead\_time} (\TBImpLead) and \code{country} (\TBImpCountry) matter most, followed by \code{market\_segment}
+(\TBImpSegment) and \code{total\_of\_special\_requests} (\TBImpSpecial) — consistent with Figure~\ref{tb:fig-target}.
+\code{deposit\_type} ranks only \TBImpDepositRank{}th (\TBImpDeposit): once duplicates are removed, very few Non Refund
+bookings remain. Permutation importance shows what the model \emph{uses}, not what \emph{causes} a cancellation.
+\end{finding}
+
+\subsection{Where the model fails}
+\begin{table}[H]\centering\small
+\caption{Test errors by market segment (segments with at least 50 test bookings).}\label{tb:tab-segments}
+\input{generated/tabular/segments}
+\end{table}
+\begin{finding}
+\Q Is the error rate the same for every kind of booking?
+\F No. Errors concentrate in \textbf{Online TA} (error rate \TBSegOnlineErr), the largest segment and the one with the most
+cancellations (\TBSegOnlineCancel). For \textbf{Direct} and \textbf{Corporate} bookings recall is only \TBSegDirectRecall{} and
+\TBSegCorpRecall: these guests rarely cancel, so the model seldom predicts a cancellation for them. Groups
+(\TBSegGroupsRecall) and Offline TA/TO (\TBSegOfflineRecall) are caught well. A per-segment threshold would be a natural
+next step.
+\end{finding}
+
+\section{Conclusions}\label{tb:conclusion}
+\begin{enumerate}
+\item \textbf{Cleaning decides whether results can be trusted.} \TBDupPct{} of the rows were duplicates and three columns
+leaked the answer; ignoring them gives ``excellent'' scores (F1 \TBNodupF{}–\TBLeakF) that are simply wrong. The true
+cancellation rate after cleaning is \TBCancelClean, not \TBCancelRaw.
+\item \textbf{Non-linear ensembles work best.} The tuned HistGradientBoosting model beats Logistic Regression by \TBGainF{}
+F1 and \TBGainPR{} PR-AUC on the test set (F1 \TBTestFinF, ROC-AUC \TBTestFinROC).
+\item \textbf{The threshold matters as much as the model.} Moving it from 0.5 to \TBThr{} raises validation recall from
+\TBImbDefR{} to \TBImbThrR{} at the same ranking quality.
+\item \textbf{Strongest signals:} booking far ahead, nationality, sales channel, and \emph{not} making special requests.
+\end{enumerate}
+\textbf{Limitations.} The split is random rather than chronological, so the score on truly future bookings may be lower;
+the data covers two Portuguese hotels before COVID-19; and the F1-optimal threshold assumes that a missed cancellation and a
+false alarm cost the same.
+
+\textbf{Future work.} A time-based split (train 2015–2016, test 2017); a threshold derived from real business costs;
+\code{TargetEncoder} for high-cardinality \code{country} and \code{agent}; probability calibration so scores can drive
+overbooking directly; per-booking explanations with SHAP.
+
+\begin{thebibliography}{9}
+\bibitem{tb-antonio} N.~Antonio, A.~de~Almeida, L.~Nunes. \emph{Hotel booking demand datasets}. Data in Brief, 22 (2019),
+  41--49. \url{https://doi.org/10.1016/j.dib.2018.11.126}
+\bibitem{tb-sklearn} F.~Pedregosa et al. \emph{Scikit-learn: Machine Learning in Python}. Journal of Machine Learning
+  Research, 12 (2011), 2825--2830.
+\bibitem{tb-nb} Group G3. \emph{Notebook} \code{G3\_Tabular\_HotelBooking.ipynb}. \TBNotebook
+\bibitem{tb-page} Group G3. \emph{Project page (rendered notebook, report and video)}. \TBPage\ — video: \TBVideo
+\end{thebibliography}

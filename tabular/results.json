@@ -193,5 +193,82 @@
       "error_rate": 0.0845,
       "recall": 0.9194
     }
+  },
+  "eda": {
+    "deposit_cancel_rate": {
+      "No Deposit": 0.284,
+      "Non Refund": 0.994,
+      "Refundable": 0.222
+    },
+    "lead_0_7": 0.09632330598602248,
+    "lead_over_365": 0.6766200762388819,
+    "special_0": 0.4772035609658978,
+    "special_3plus": 0.16823079596802223,
+    "segment_cancel_rate": {
+      "Aviation": 0.2194,
+      "Complementary": 0.1306,
+      "Corporate": 0.1873,
+      "Direct": 0.1534,
+      "Groups": 0.6106,
+      "Offline TA/TO": 0.3432,
+      "Online TA": 0.3672,
+      "Undefined": 1.0
+    },
+    "nonrefund_before": 14587,
+    "nonrefund_after": 1010,
+    "missing_pct": {
+      "company": 94.31,
+      "agent": 13.69,
+      "country": 0.41,
+      "children": 0.0,
+      "distribution_channel": 0.0,
+      "market_segment": 0.0,
+      "meal": 0.98
+    },
+    "checks": {
+      "Exact duplicate rows": 31994,
+      "Duplicates (after dropping leakage columns)": 33241,
+      "Bookings with 0 guests": 180,
+      "Negative ADR": 1,
+      "ADR > 1000 (entry error)": 1,
+      "0-night bookings": 715
+    },
+    "cleaning_log": [
+      {
+        "reason": "0 guests",
+        "rows removed": 180
+      },
+      {
+        "reason": "ADR negative or > 1000",
+        "rows removed": 2
+      },
+      {
+        "reason": "duplicate",
+        "rows removed": 33226
+      }
+    ],
+    "skew": {
+      "lead_time": {
+        "skew before": 1.43,
+        "skew after": -0.71
+      },
+      "adr": {
+        "skew before": 0.88,
+        "skew after": 0.76
+      }
+    },
+    "spearman_with_target": {
+      "is_canceled": 1.0,
+      "lead_time": 0.317,
+      "adr": 0.051,
+      "total_of_special_requests": -0.259,
+      "required_car_parking_spaces": -0.197,
+      "booking_changes": -0.185,
+      "previous_cancellations": 0.27,
+      "is_repeated_guest": -0.085,
+      "days_in_waiting_list": 0.098,
+      "stays_in_week_nights": 0.041,
+      "adults": 0.067
+    }
   }
 }

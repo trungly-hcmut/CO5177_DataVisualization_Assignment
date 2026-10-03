@@ -142,5 +142,199 @@
     "News ~ Travel": 0.5242,
     "Business ~ News": 0.5032,
     "Sci-Tech ~ World": 0.4906
-  }
+  },
+  "quality": {
+    "nfc_changed": 0,
+    "dup_within_section": 7,
+    "multi_section_urls": 2
+  },
+  "top_terms": {
+    "Business": [
+      "lãi",
+      "phiếu",
+      "doanh nghiệp",
+      "cổ phiếu",
+      "lãi suất",
+      "doanh",
+      "khoán",
+      "chứng khoán"
+    ],
+    "Education": [
+      "học",
+      "đại học",
+      "sinh",
+      "trường",
+      "học sinh",
+      "sinh viên",
+      "đại",
+      "ngành"
+    ],
+    "Entertainment": [
+      "phim",
+      "miss",
+      "diễn viên",
+      "miss world",
+      "diễn",
+      "hoa hậu",
+      "ca",
+      "hậu"
+    ],
+    "Health": [
+      "bệnh",
+      "huyết",
+      "bác sĩ",
+      "máu",
+      "viêm",
+      "ăn",
+      "uống",
+      "ung"
+    ],
+    "Law": [
+      "bị cáo",
+      "cáo",
+      "bị",
+      "cáo buộc",
+      "công an",
+      "sát hại",
+      "tù",
+      "lừa"
+    ],
+    "News": [
+      "ngập",
+      "mưa",
+      "mưa lớn",
+      "sông",
+      "quốc lộ",
+      "lộ num",
+      "sạt",
+      "lở"
+    ],
+    "Sci-Tech": [
+      "iphone",
+      "robot",
+      "num pro",
+      "pro",
+      "iphone num",
+      "apple",
+      "ai",
+      "robot hình"
+    ],
+    "Sports": [
+      "cup",
+      "hlv",
+      "asiad",
+      "man",
+      "trận",
+      "asiad num",
+      "league",
+      "fifa"
+    ],
+    "Travel": [
+      "khách",
+      "du",
+      "du khách",
+      "du lịch",
+      "điểm đến",
+      "khách việt",
+      "lịch",
+      "dịp"
+    ],
+    "World": [
+      "trump",
+      "iran",
+      "ukraine",
+      "ông trump",
+      "tổng thống",
+      "tổng",
+      "nga",
+      "houthi"
+    ]
+  },
+  "n_misclassified": 61,
+  "misclassified_examples": [
+    {
+      "label": "Travel",
+      "predicted": "Education",
+      "title": "Thủ đô quốc gia Đông Nam Á nào đông dân nhất thế giới?"
+    },
+    {
+      "label": "World",
+      "predicted": "News",
+      "title": "Giải cứu 10 ngư dân Việt Nam làm việc tại Malaysia"
+    },
+    {
+      "label": "Business",
+      "predicted": "Travel",
+      "title": "Hàng không đón khách quốc tế nhiều hơn nội địa dịp Quốc khánh"
+    },
+    {
+      "label": "Sci-Tech",
+      "predicted": "Travel",
+      "title": "Tại sao cửa sổ máy bay khó sản xuất?"
+    },
+    {
+      "label": "World",
+      "predicted": "Travel",
+      "title": "Nghệ thuật 'khiêu khích' ẩn sau quả chuối dán tường 6 triệu USD"
+    },
+    {
+      "label": "World",
+      "predicted": "Law",
+      "title": "Nỗi day dứt của đầu bếp thoát chết vụ 11/9 nhờ đổi ca với đồng nghiệp"
+    },
+    {
+      "label": "Entertainment",
+      "predicted": "Travel",
+      "title": "Justin Bieber mở show miễn phí vì người vô gia cư"
+    },
+    {
+      "label": "Sci-Tech",
+      "predicted": "Travel",
+      "title": "Mark Zuckerberg mua lâu đài"
+    },
+    {
+      "label": "News",
+      "predicted": "Law",
+      "title": "Đề xuất chuyển thẩm quyền điều tra của Viện Kiểm sát sang Bộ Công an"
+    },
+    {
+      "label": "Business",
+      "predicted": "World",
+      "title": "Giá năng lượng cao kỷ lục đẩy Mỹ vào thế khó"
+    }
+  ],
+  "demo": [
+    {
+      "headline": "Đội tuyển Việt Nam thắng Thái Lan 2-1 ở chung kết",
+      "predicted section": "Sports"
+    },
+    {
+      "headline": "Giá vàng tăng mạnh phiên đầu tuần",
+      "predicted section": "Business"
+    },
+    {
+      "headline": "Bộ Giáo dục công bố phương án thi tốt nghiệp THPT 2027",
+      "predicted section": "Education"
+    },
+    {
+      "headline": "Phát hiện hành tinh mới có thể chứa nước",
+      "predicted section": "Sci-Tech"
+    },
+    {
+      "headline": "Bác sĩ khuyến cáo cách phòng sốt xuất huyết mùa mưa",
+      "predicted section": "Health"
+    },
+    {
+      "headline": "Khởi tố giám đốc công ty lừa đảo chiếm đoạt 50 tỷ đồng",
+      "predicted section": "Law"
+    },
+    {
+      "headline": "Tổng thống Mỹ gặp Chủ tịch Trung Quốc tại hội nghị APEC",
+      "predicted section": "World"
+    },
+    {
+      "headline": "Vịnh Hạ Long lọt top điểm đến đẹp nhất châu Á",
+      "predicted section": "Travel"
+    }
+  ]
 }

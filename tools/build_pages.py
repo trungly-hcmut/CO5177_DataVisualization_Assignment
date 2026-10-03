@@ -9,7 +9,7 @@ Usage (from the repository root, after re-running a notebook):
     python tools/build_pages.py
 
 To publish the PDF report or the YouTube video of a part, drop `report.pdf` into
-its folder and/or fill in VIDEO_URLS below, then run the script again.
+its folder and/or fill in VIDEO_URLS in tools/site_config.py, then run the script again.
 """
 import html
 import json
@@ -19,22 +19,9 @@ from pathlib import Path
 import nbformat
 from nbconvert import HTMLExporter
 
+from site_config import GITHUB_BLOB, MEMBERS, REPO, VIDEO_URLS
+
 ROOT = Path(__file__).resolve().parents[1]
-REPO = "trungly-hcmut/CO5177_DataVisualization_Assignment"
-GITHUB_BLOB = f"https://github.com/{REPO}/blob/main"
-
-# Paste the YouTube link of each presentation here (Public or Unlisted).
-VIDEO_URLS = {
-    "tabular": None,
-    "text": None,
-    "timeseries": None,
-}
-
-MEMBERS = [
-    ("Ly Minh Trung", "2570349", "Data Scientist", "LT", "var(--lime)"),
-    ("Dinh Truong Tue Linh", "2570441", "Data Scientist", "DT", "var(--peach)"),
-    ("Nguyen Hoang Nam", "2570261", "Analysis and Visualization", "NH", "var(--blue)"),
-]
 
 
 def fmt_int(x):

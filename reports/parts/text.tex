@@ -1,0 +1,251 @@
+% Body of the Text report — used by text.tex (as an article) and G3-report.tex (as a chapter).
+% Every number comes from generated/text.tex (built from text/results.json).
+
+\section{Problem and objective}\label{tx:problem}
+News websites tag every article with a section so that readers can browse, search and receive recommendations.
+Given only the \textbf{headline} and the \textbf{lead paragraph} (``sapo'') of a Vietnamese news article, we predict which of
+\TXClasses{} newspaper sections it belongs to: News (Thời sự), World, Business, Sci-Tech, Entertainment, Sports, Law,
+Education, Health and Travel.
+
+\textbf{Objective.} Build a topic classifier for short Vietnamese texts, compare classical bag-of-words models with a
+pretrained multilingual sentence-embedding model, and understand which mistakes remain.
+
+\textbf{How success is measured.} \textbf{Macro-F1} — the mean of the per-section F1 scores, so every section counts
+equally — plus accuracy, on a held-out test set used once.
+
+\section{Dataset: collected by the group}\label{tx:dataset}
+No ready-made dataset was used: the group wrote a crawler — \code{crawl\_vnexpress.py} in \code{text/crawler/}, built on
+\code{requests} and \code{BeautifulSoup} — for \emph{VnExpress} \cite{tx-vnexpress}, one of Vietnam's largest online newspapers, and ran it on
+27~September~2026.
+
+\begin{figure}[H]\centering
+\begin{tikzpicture}[node distance=0.36cm, box/.style={draw=bklight, fill=tint, rounded corners=2pt, font=\sffamily\footnotesize,
+  text width=2.3cm, align=center, minimum height=1.25cm}, arr/.style={-{Stealth[length=2mm]}, bkdark, thick}]
+\node[box] (a) {10 sections\\× 12 listing pages\\(120 requests)};
+\node[box, right=of a] (b) {\code{requests}\\1 s pause between\\requests};
+\node[box, right=of b] (c) {\code{BeautifulSoup}:\\headline, lead,\\dateline, URL};
+\node[box, right=of c] (d) {raw CSV\\\TXRowsRaw{} rows\\(kept unmodified)};
+\node[box, right=of d] (e) {notebook:\\clean, split,\\model};
+\draw[arr] (a) -- (b); \draw[arr] (b) -- (c); \draw[arr] (c) -- (d); \draw[arr] (d) -- (e);
+\end{tikzpicture}
+\caption{Data collection pipeline. Only headlines, leads and URLs are stored (no article bodies), for non-commercial coursework.\label{tx:fig-pipeline}}
+\end{figure}
+
+\begin{table}[H]\centering\small
+\caption{Fields of the crawled dataset.}\label{tx:tab-fields}
+\begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\toprule \hd{Column} & \hd{Meaning} \\ \midrule
+\code{title} & headline \\
+\code{description} & lead paragraph (sapo) \\
+\code{location} & dateline such as ``Hà Nội'' or ``Indonesia'', when present (not used as a feature) \\
+\code{url} & article URL — unique key \\
+\code{category\_slug}, \code{category} & section = \textbf{label} \\
+\code{page}, \code{crawled\_at} & listing page number and crawl time \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]\centering\small
+\caption{Assignment requirements for text data (section 4.3) and how this dataset meets them.}\label{tx:tab-req}
+\begin{tabularx}{\linewidth}{L{4.6cm}Yl}
+\toprule \hd{Requirement} & \hd{This dataset} & \hd{Status} \\ \midrule
+At least 2,000 samples & \TXRowsRaw{} articles (\TXRowsClean{} after cleaning) & \met \\
+Vietnamese data encouraged & all headlines and leads are Vietnamese & \met \\
+Self-collected data valued & crawled by the group; the crawler is in the repository & \met \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Exploratory data analysis}\label{tx:eda}
+\textbf{Quality.} \TXMissingDesc{} articles have no lead paragraph (mostly photo or video stories); \TXDupWithin{} URLs appear
+twice within the same section (an article was pinned while the listing shifted between requests); \TXMultiSection{} URLs
+are listed under two different sections, which makes their label ambiguous. \TXNFC{} headlines needed Unicode normalisation.
+
+\textbf{Balance and length.} The crawler read the same number of pages per section, so the classes are balanced
+(\TXClassMin{}–\TXClassMax{} articles each). Texts are short: a median headline has \TXMedTitle{} syllables and a median
+lead \TXMedDesc{} — about the length of one tweet. Vietnamese separates \emph{syllables}, not words, with spaces
+(``bóng đá'', football, is two tokens), which shapes the choice of representation (Section~\ref{tx:prep}).
+
+\begin{table}[H]\centering\small
+\caption{The eight n-grams most over-represented in each section (χ² test of each TF-IDF 1–2-gram, section vs.\ rest, training set).\label{tx:tab-terms}}
+\input{generated/text/topterms}
+\end{table}
+\begin{finding}
+\Q Which words does each section ``own''?
+\F Two kinds of signal appear. \textbf{Stable topic vocabulary}: \emph{Health} — \textit{bệnh, bác sĩ, viêm}; \emph{Education}
+— \textit{học sinh, đại học, sinh viên}; \emph{Law} — \textit{bị cáo, cáo buộc, tù}; \emph{Business} — \textit{cổ phiếu, lãi
+suất, chứng khoán}. Bigrams such as \textit{cổ phiếu} and \textit{bác sĩ} rank next to their single syllables, so syllable
+pairs recover real words. \textbf{Time-specific names}: \emph{Sci-Tech} is driven by \textit{iphone, apple, robot},
+\emph{World} by \textit{trump, iran, ukraine}, \emph{Sports} by \textit{asiad, fifa}, and \emph{News} by recent floods
+(\textit{ngập, mưa lớn, sạt lở}). These reflect the news cycle at crawl time rather than the section itself — a risk
+discussed in the limitations.
+\end{finding}
+
+\fig[0.72\linewidth]{txt_03_centroid_similarity}{Cosine similarity between the average TF-IDF vector (centroid) of each section.\label{tx:fig-similarity}}
+\begin{finding}
+\Q Before training any model, can we predict which sections will be confused?
+\F The most similar pairs are \textbf{\TXSimOnePair{}} (\TXSimOne) — chips, technology companies and market value appear in
+both — and \textbf{\TXSimTwoPair{}} (\TXSimTwo) — police and accidents appear in both. \emph{Sports} is the most isolated
+section. Section~\ref{tx:results} checks this prediction against the confusion matrix.
+\end{finding}
+
+\section{Text preparation}\label{tx:prep}
+\begin{table}[H]\centering\small
+\caption{Preparation steps.}\label{tx:tab-prep}
+\begin{tabularx}{\linewidth}{L{4.0cm}Y}
+\toprule \hd{Step} & \hd{What is done and why} \\ \midrule
+Duplicates & keep one copy of URLs repeated within a section; drop URLs listed under two sections (ambiguous label) → \TXRowsClean{} articles (\TXRemoved{} rows removed) \\
+Missing values & a missing lead becomes an empty string, so the article is classified from its headline alone \\
+Input text & headline + ``. '' + lead \\
+Cleaning (\code{VietnameseTextCleaner}) & Unicode NFC normalisation (the same diacritic can be stored as one or two code points); lower-casing; numbers → token \code{num}; punctuation removed \\
+Tokens & pattern \code{\textbackslash b\textbackslash w+\textbackslash b} keeps one-character syllables; the scikit-learn default would silently drop \TXSingleChar{} of them, including \textit{ô} (in \textit{ô tô}, car) and \textit{ở} (at) \\
+Label encoding & \code{LabelEncoder}: 10 sections → 0–9 \\
+Split & stratified 70 / 15 / 15: \TXTrain{} / \TXVal{} / \TXTest{} articles \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For text, \emph{encoding} means turning each document into a vector and \emph{scaling} means weighting and normalising that
+vector. Four representations are compared, all fitted on the training set only:
+
+\begin{table}[H]\centering\small
+\caption{Text representations compared.}\label{tx:tab-reps}
+\begin{tabularx}{\linewidth}{L{3.0cm}YL{3.3cm}r}
+\toprule \hd{Representation} & \hd{Idea} & \hd{Weighting / scaling} & \hd{Vocabulary} \\ \midrule
+BoW, 1-gram & how often each syllable occurs & raw counts & \TXVocabUni \\
+TF-IDF, 1-gram & counts re-weighted by rarity across documents & sublinear tf, L2 norm & \TXVocabUni \\
+TF-IDF, 1–2-gram & adds syllable pairs → compound words & sublinear tf, L2 norm & \TXVocabBi \\
+TF-IDF, char 2–5 & character n-grams inside words → robust to spelling & sublinear tf, L2 norm & \TXVocabChar \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Modelling}\label{tx:models}
+\subsection{Representation × classifier grid}
+Each representation is paired with four classifiers — Multinomial Naive Bayes, Logistic Regression, a linear Support Vector
+Machine and k-nearest neighbours with cosine distance — and scored on the validation set (\code{TextBenchmark} class).
+
+\begin{table}[H]\centering\small
+\caption{Validation macro-F1 for every representation × classifier pair (best in bold). A stratified random guess scores \TXRandomVal.}\label{tx:tab-grid}
+\input{generated/text/grid}
+\end{table}
+\begin{finding}
+\Q Which representation and classifier work best for short Vietnamese texts?
+\F \textbf{TF-IDF beats raw counts} for the discriminative models — Logistic Regression \TXGainTfidfLr, Linear SVM
+\TXGainTfidfSvm, kNN \TXGainTfidfKnn{} — because IDF down-weights syllables that occur everywhere (\textit{của, là, và}),
+acting as an automatic stop-word list; Naive Bayes, designed for counts, does not gain. \textbf{Adding bigrams helps every
+model} (\TXGainBiMin{} to \TXGainBiMax), while character n-grams do not beat word bigrams. The best pair is
+\TXGridBest{} (\TXGridBestF); the Linear SVM on the same features is practically tied (\TXGBiSvm) and trains several times faster.
+\end{finding}
+
+\subsection{Tuning}
+The TF-IDF + Linear SVM pipeline was tuned with 5-fold stratified cross-validation on the training set over the n-gram range,
+\code{min\_df}, sublinear term frequency and the regularisation constant \code{C}. The best setting uses
+\TXBestNgram-grams, \code{min\_df} = \TXBestMinDf{} and \code{C} = \TXBestC{} (cross-validated macro-F1 \TXCvF). On the single
+validation split it scores \TXTunedVal{} — within about 0.01 of the untuned models, i.e.\ a handful of the \TXVal{} articles;
+the 5-fold estimate is the more reliable of the two.
+
+\section{Extra experiments}\label{tx:extra}
+\subsection{Which field carries the signal, and would more data help?}
+\begin{figure}[H]\centering
+\begin{subfigure}[t]{0.49\linewidth}\centering\includegraphics[width=\linewidth]{txt_06_fields}
+\caption{Headline vs lead as input (validation).}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\centering\includegraphics[width=\linewidth]{txt_07_learning_curve}
+\caption{Learning curve of the tuned model.}\end{subfigure}
+\caption{Two questions about the data itself, answered with the tuned TF-IDF + Linear SVM pipeline.\label{tx:fig-data}}
+\end{figure}
+\begin{finding}
+\Q Is the headline or the lead more informative — and is our crawled dataset big enough?
+\F The \textbf{lead alone (\TXLeadOnly) beats the headline alone (\TXHeadOnly)} by \TXLeadOverHead: leads are longer and
+written to summarise, headlines are short and often figurative. Using both is best (\TXBoth, \TXBothOverLead{} over the lead).
+The learning curve rises from \TXLcFirst{} with \TXLcFirstN{} articles to \TXLcMid{} with \TXLcMidN, then flattens: doubling to
+\TXLcLastN{} articles adds only \TXLcLastGain. Crawling more would help a little; a better representation should help more.
+\end{finding}
+
+\subsection{TF-IDF versus multilingual sentence embeddings}
+We encode every article with \code{intfloat/multilingual-e5-small} \cite{tx-e5}, a 118-million-parameter multilingual sentence
+encoder with 384-dimensional output, loaded with the sentence-transformers library \cite{tx-sbert}. Following the assignment, the
+pretrained model is used as a \textbf{frozen feature extractor}: a Logistic Regression is trained on the embeddings. A
+\textbf{hybrid} model concatenates the TF-IDF features with the embeddings and trains a Linear SVM.
+
+\fig[0.8\linewidth]{txt_08_tfidf_vs_embedding}{Test macro-F1 of the three approaches and the random baseline (dark = final model, chosen on validation).\label{tx:fig-embed}}
+\begin{finding}
+\Q Does a pretrained neural encoder beat a bag of syllables on short Vietnamese news?
+\F Yes, and combining them is best. On the test set, embeddings alone reach \TXEmbTest{} (\TXGainEmb{} over tuned TF-IDF at
+\TXTfidfTest), and the \textbf{hybrid reaches \TXHybTest{}} (\TXGainHyb). The ranking is the same on validation
+(\TXTfidfVal{} → \TXEmbVal{} → \TXHybVal), so the choice generalises. TF-IDF keeps exact names (\textit{iphone, asiad}) that
+embeddings blur; embeddings map different wordings of the same idea close together.
+\end{finding}
+
+\section{Results on the test set}\label{tx:results}
+\begin{table}[H]\centering\small
+\caption{Validation and test scores of the compared approaches. The final model was chosen on validation macro-F1.}\label{tx:tab-comparison}
+\input{generated/text/comparison}
+\end{table}
+
+The final hybrid model reaches \textbf{accuracy \TXFinAcc{} and macro-F1 \TXFinF} on the \TXTest{} test articles; \TXNMis{} are
+misclassified. \emph{\TXBestClass} is the easiest section (F1 \TXBestClassF) and \emph{\TXWorstClass} the hardest
+(\TXWorstClassF).
+
+\begin{table}[H]\centering\small
+\caption{Per-section test F1 of the final model.}\label{tx:tab-perclass}
+\input{generated/text/perclass}
+\end{table}
+
+\fig[0.7\linewidth]{txt_09_confusion}{Confusion matrix of the final model on the test set (counts; colour = share of the true section).\label{tx:fig-confusion}}
+
+\begin{table}[H]\centering\small
+\caption{Most frequent confusions on the test set.}\label{tx:tab-confusions}
+\input{generated/text/confusions}
+\end{table}
+\begin{finding}
+\Q Did the centroid similarity of Figure~\ref{tx:fig-similarity} predict the errors?
+\F Largely yes: \textbf{Business → Sci-Tech}, the most similar pair before training, is among the two most frequent confusions.
+Business is the hardest section because it overlaps with technology, world affairs and travel (airlines, tourism revenue).
+\end{finding}
+
+\begin{table}[H]\centering\small
+\caption{Examples of misclassified test articles.}\label{tx:tab-wrong}
+\input{generated/text/misclassified}
+\end{table}
+Many errors sit genuinely between sections — \textit{``Tại sao cửa sổ máy bay khó sản xuất?''} (why aircraft windows are hard to
+make) is Sci-Tech but reads like Travel; a human editor could file several of them either way, so part of the remaining error
+is label ambiguity rather than model failure. Finally, all eight headlines written by the group, which are not in the dataset,
+are classified correctly:
+
+\begin{table}[H]\centering\small
+\caption{Predictions of the final model on new headlines.}\label{tx:tab-demo}
+\input{generated/text/demo}
+\end{table}
+
+\section{Conclusions}\label{tx:conclusion}
+\begin{enumerate}
+\item \textbf{A self-crawled Vietnamese dataset is enough for a strong classifier}: \TXRowsClean{} clean articles in \TXClasses{}
+sections give \TXFinF{} test macro-F1 from a headline and a two-sentence lead.
+\item \textbf{Vietnamese needs care in the details}: NFC normalisation, keeping one-character syllables, and syllable bigrams to
+recover compound words. TF-IDF 1–2-grams beat raw unigram counts by \TXGainBiOverBowLr{} (Logistic Regression) and
+\TXGainBiOverBowSvm{} (Linear SVM).
+\item \textbf{Sentence embeddings beat TF-IDF, and the combination is best}: \TXGainEmb{} and \TXGainHyb{} test macro-F1 over tuned TF-IDF.
+\item \textbf{The lead carries more signal than the headline} (\TXLeadOnly{} vs \TXHeadOnly), and the learning curve flattens
+after about \TXLcMidN{} articles.
+\item \textbf{Errors are predictable}: the most similar pair of section centroids is among the most frequent confusions.
+\end{enumerate}
+\textbf{Limitations.} All articles come from one short window (the latest 12 listing pages per section on 27~September~2026),
+and many discriminative words are event names (Trump, ASIAD, iPhone, floods), so accuracy will likely drop on news from
+another period. There is one newspaper and one editorial style, and section labels are sometimes ambiguous. Syllable
+n-grams only approximate words; a Vietnamese word segmenter was not used, to keep the notebook dependency-free.
+
+\textbf{Future work.} Re-crawl in a later month and measure the drop (temporal robustness); crawl other newspapers to test
+cross-source generalisation; compare word-segmented TF-IDF; lightly fine-tune a Vietnamese language model on top of the
+frozen-encoder baseline.
+
+\begin{thebibliography}{9}
+\bibitem{tx-vnexpress} VnExpress — Vietnamese online newspaper. \url{https://vnexpress.net} (section listings crawled 27~September~2026).
+\bibitem{tx-e5} L.~Wang, N.~Yang, X.~Huang, L.~Yang, R.~Majumder, F.~Wei. \emph{Multilingual E5 Text Embeddings: A Technical
+  Report}. arXiv:2402.05672, 2024. Model: \url{https://huggingface.co/intfloat/multilingual-e5-small}
+\bibitem{tx-sbert} N.~Reimers, I.~Gurevych. \emph{Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks}. EMNLP 2019.
+\bibitem{tx-sklearn} F.~Pedregosa et al. \emph{Scikit-learn: Machine Learning in Python}. Journal of Machine Learning
+  Research, 12 (2011), 2825--2830.
+\bibitem{tx-nb} Group G3. \emph{Notebook} \code{G3\_Text\_VnExpressNews.ipynb}. \TXNotebook
+\bibitem{tx-page} Group G3. \emph{Project page (rendered notebook, report and video)}. \TXPage\ — video: \TXVideo
+\end{thebibliography}

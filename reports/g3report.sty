@@ -1,0 +1,175 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{g3report}[2026/10/03 Group G3 report style]
+
+% ---------- Fonts (loaded by file name; all cover Vietnamese) ----------
+\RequirePackage{fontspec}
+\setmainfont{texgyrepagella}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setsansfont{SourceSansPro}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-Semibold,
+  ItalicFont=*-RegularIt, BoldItalicFont=*-SemiboldIt]
+\setmonofont{SourceCodePro}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-Bold, Scale=0.84]
+\newfontfamily\sfbold{SourceSansPro}[Extension=.otf, UprightFont=*-Bold]
+
+% ---------- Page ----------
+\RequirePackage[a4paper, top=2.6cm, bottom=2.4cm, left=2.4cm, right=2.4cm,
+  headheight=1.2cm, headsep=0.7cm, footskip=1.1cm]{geometry}
+\RequirePackage{graphicx}
+\graphicspath{{../tabular/figures/}{../text/figures/}{../timeseries/figures/}{assets/}}
+\RequirePackage[table]{xcolor}
+\RequirePackage{booktabs, tabularx, array, multirow, makecell}
+\RequirePackage{enumitem}
+\RequirePackage{float}
+\RequirePackage{caption}
+\RequirePackage{subcaption}
+\RequirePackage{fancyhdr}
+\RequirePackage{lastpage}
+\RequirePackage{titlesec}
+\RequirePackage{etoolbox}
+\RequirePackage{microtype}
+\RequirePackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{xurl}
+\RequirePackage[hidelinks=false, colorlinks=true]{hyperref}
+
+\definecolor{bkdark}{HTML}{032B91}
+\definecolor{bklight}{HTML}{1488DB}
+\definecolor{ink}{HTML}{1F2622}
+\definecolor{muted}{HTML}{6A736B}
+\definecolor{rule}{HTML}{C9CFD8}
+\definecolor{tint}{HTML}{EEF4FC}
+\definecolor{good}{HTML}{0B7A3E}
+
+\hypersetup{linkcolor=bkdark, urlcolor=bklight, citecolor=bkdark,
+  pdfauthor={Group G3}, pdfcreator={XeLaTeX}}
+
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{0.55em}
+\linespread{1.08}
+\setlist{itemsep=0.25em, topsep=0.3em, leftmargin=1.4em}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{5pt}
+\arrayrulecolor{rule}
+
+% ---------- Headings ----------
+\titleformat{\section}{\sffamily\LARGE\bfseries\color{bkdark}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries\color{bkdark}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\sffamily\normalsize\bfseries\color{ink}}{\thesubsubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.6em}{0.6em}
+\titlespacing*{\subsection}{0pt}{1.2em}{0.4em}
+\titlespacing*{\subsubsection}{0pt}{0.9em}{0.3em}
+\@ifundefined{chapter}{}{%
+  \titleformat{\chapter}[display]{\sffamily\color{bkdark}}%
+    {\normalsize\bfseries\MakeUppercase{\chaptertitlename}\ \thechapter}{0.4em}{\Huge\bfseries}%
+    [\vspace{0.3em}{\color{bklight}\titlerule[1.2pt]}]
+  \titlespacing*{\chapter}{0pt}{0pt}{1.6em}
+}
+
+% ---------- References: a section inside the chapter (report class), not a new chapter ----------
+\@ifundefined{chapter}{\renewcommand{\refname}{References}}{%
+  \renewcommand{\bibname}{References}
+  \patchcmd{\thebibliography}{\chapter*{\bibname}}{\section*{\bibname}}{}{\PackageWarning{g3report}{bibliography patch failed}}
+  \patchcmd{\thebibliography}{\@mkboth{\MakeUppercase\bibname}{\MakeUppercase\bibname}}{}{}{}
+}
+
+% ---------- Every section starts on a new page (except directly under a chapter heading) ----------
+\newif\ifgrp@sectionbreaks \grp@sectionbreakstrue
+\newif\ifgrp@afterchapter
+\newcommand{\sectionsonnewpage}{\global\grp@sectionbreakstrue}
+\newcommand{\sectionsflow}{\global\grp@sectionbreaksfalse}
+\newcommand{\sectionbreak}{\ifgrp@sectionbreaks\ifgrp@afterchapter\global\grp@afterchapterfalse\else\clearpage\fi\fi}
+\@ifundefined{chapter}{}{\pretocmd{\chapter}{\global\grp@afterchaptertrue}{}{\PackageWarning{g3report}{chapter patch failed}}}
+
+% ---------- Captions & floats ----------
+\captionsetup{font={small}, labelfont={sf,bf,color=bkdark}, labelsep=period,
+  justification=justified, singlelinecheck=false, skip=6pt}
+\captionsetup[table]{position=top}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+
+% ---------- Header / footer ----------
+\newcommand{\grpPartLabel}{}
+\newcommand{\setpartlabel}[1]{\renewcommand{\grpPartLabel}{#1}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\raisebox{-0.25\height}{\includegraphics[height=0.75cm]{hcmut-logo}}\hspace{0.6em}%
+  \parbox[b]{9cm}{\sffamily\footnotesize\color{ink}\textbf{Ho Chi Minh City University of Technology}\\
+  \color{muted}Programming Foundations for Data Analysis and Visualization}}
+\fancyhead[R]{\sffamily\footnotesize\color{muted}Semester 261, 2026–2027}
+\fancyfoot[L]{\sffamily\footnotesize\color{muted}Group G3\ifx\grpPartLabel\empty\else\ · \grpPartLabel\fi}
+\fancyfoot[R]{\sffamily\footnotesize\color{muted}Page \thepage\ of \pageref*{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{{\color{rule}\hrule height\headrulewidth width\headwidth}}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[R]{\sffamily\footnotesize\color{muted}Page \thepage\ of \pageref*{LastPage}}%
+  \renewcommand{\headrulewidth}{0pt}}
+
+% ---------- Small helpers ----------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\hd}[1]{\textsf{\textbf{\small #1}}}
+\newcommand{\met}{\textsf{\textbf{\color{good}Met}}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% Question -> finding callout used under figures (creativity rubric, section 7.1)
+\newtcolorbox{finding}{enhanced, breakable, colback=tint, colframe=bklight, boxrule=0pt,
+  leftrule=2.6pt, arc=0pt, outer arc=0pt, left=9pt, right=9pt, top=6pt, bottom=6pt,
+  before skip=6pt, after skip=10pt, fontupper=\small}
+\newcommand{\Q}{\textsf{\textbf{\color{bkdark}Question.}}\ }
+\newcommand{\F}{\par\smallskip\textsf{\textbf{\color{bkdark}Finding.}}\ }
+
+% Figure with full-width image
+\newcommand{\fig}[3][\linewidth]{%
+  \begin{figure}[H]\centering\includegraphics[width=#1]{#2}\caption{#3}\end{figure}}
+
+% ---------- Cover page ----------
+% \coverpage{kicker}{title}{subtitle}{links block}
+\newcommand{\coverpage}[4]{%
+  \begin{titlepage}
+  \newgeometry{top=2.2cm, bottom=2.2cm, left=2.6cm, right=2.6cm}
+  \centering
+  {\sffamily\color{bkdark}
+   {\large ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}\\[0.25em]
+   {\large\bfseries TRƯỜNG ĐẠI HỌC BÁCH KHOA}\\[0.25em]
+   {\large\bfseries KHOA KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH}\\[0.4em]
+   {\small\color{muted}Vietnam National University -- Ho Chi Minh City · Ho Chi Minh City University of Technology\\
+   Faculty of Computer Science and Engineering}\par}
+  \vspace{0.9cm}
+  \includegraphics[height=3.6cm]{hcmut-logo}\par
+  \vspace{0.9cm}
+  {\sffamily\color{ink}\large\bfseries NỀN TẢNG LẬP TRÌNH CHO PHÂN TÍCH VÀ TRỰC QUAN DỮ LIỆU\par}
+  \vspace{0.2em}
+  {\sffamily\color{muted}Programming Foundations for Data Analysis and Visualization\par}
+  \vspace{0.7cm}
+  {\color{bklight}\rule{0.82\linewidth}{1.2pt}}\par\vspace{0.5cm}
+  {\sffamily\small\bfseries\color{bklight}\MakeUppercase{#1}\par}
+  \vspace{0.35cm}
+  {\sffamily\fontsize{24}{29}\selectfont\bfseries\color{bkdark}#2\par}
+  \vspace{0.3cm}
+  {\large\itshape\color{ink}#3\par}
+  \vspace{0.6cm}
+  {\color{bklight}\rule{0.82\linewidth}{1.2pt}}\par
+  \vspace{0.6cm}
+  {\sffamily
+  \begin{tabular}{@{}ll@{}}
+    \textcolor{muted}{Lecturer} & \textbf{\grpLecturer} \\
+    \textcolor{muted}{Group} & \textbf{G3} \\
+    \textcolor{muted}{Semester} & 261, academic year 2026--2027 \\
+  \end{tabular}\par\vspace{0.6cm}
+  \begin{tabular}{@{}clll@{}}
+    \toprule
+    \hd{No.} & \hd{Full name} & \hd{Student ID} & \hd{Role} \\
+    \midrule
+    \grpMemberRows
+    \bottomrule
+  \end{tabular}\par}
+  \vspace{0.5cm}
+  {\sffamily\footnotesize #4\par}
+  \vfill
+  {\sffamily\color{muted}Ho Chi Minh City, \grpDate\par}
+  \restoregeometry
+  \end{titlepage}}
