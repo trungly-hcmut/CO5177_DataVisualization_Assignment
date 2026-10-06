@@ -19,7 +19,7 @@ from pathlib import Path
 import nbformat
 from nbconvert import HTMLExporter
 
-from site_config import GITHUB_BLOB, MEMBERS, REPO, VIDEO_URLS
+from site_config import GITHUB_BLOB, MEMBERS, REPO, SHOW_ROLES, VIDEO_URLS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -188,7 +188,7 @@ def build_page(part, index):
     dataset = "\n          ".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in part["dataset"])
     team = "\n          ".join(
         f'<li><span class="avatar" style="background:{color}">{ini}</span>'
-        f"<div><strong>{name}</strong><span>{sid} / {role}</span></div></li>"
+        f"<div><strong>{name}</strong><span>{sid}{f' / {role}' if SHOW_ROLES else ''}</span></div></li>"
         for name, sid, role, ini, color in MEMBERS)
     toc_items = "\n            ".join(f'<li><a href="#{a}">{html.escape(html.unescape(t))}</a></li>' for a, t in toc)
     nav = "\n      ".join(
@@ -214,7 +214,12 @@ PAGE = """<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{description}">
   <meta name="theme-color" content="#101514">
+  <script>/* apply the saved or system theme before first paint */(function(){{var t;try{{t=localStorage.getItem('g3-theme');}}catch(e){{}}if(t!=='light'&&t!=='dark'){{t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}}document.documentElement.setAttribute('data-theme',t);}})();</script>
   <title>{type}: {title} — G3</title>
+  <link rel="icon" href="../assets/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../assets/favicon-192.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -224,13 +229,14 @@ PAGE = """<!doctype html>
 <body class="project-page">
   <div class="noise" aria-hidden="true"></div>
   <header class="site-header">
-    <a class="brand" href="../index.html" aria-label="G3 home"><span class="brand-mark">G3</span><span>Signal / Story</span></a>
+    <a class="brand" href="../index.html" aria-label="Ho Chi Minh City University of Technology — home"><img class="brand-logo" src="../assets/hcmut-logo.png" width="40" height="40" alt=""><span class="brand-text"><strong>Trường Đại học Bách Khoa – ĐHQG TP.HCM</strong><small>Ho Chi Minh City University of Technology</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu <span>+</span></button>
     <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
       <a href="../index.html#work">All projects</a>
       {nav}
       <a class="nav-cta" href="{repo}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
     </nav>
+    <button class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Light / dark mode"><svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
   </header>
 
   <main id="top">

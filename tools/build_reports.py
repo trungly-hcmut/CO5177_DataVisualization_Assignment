@@ -22,7 +22,7 @@ from collections import Counter
 from datetime import date
 from pathlib import Path
 
-from site_config import GITHUB_BLOB, MEMBERS, PAGES_URL, REPO, VIDEO_URLS
+from site_config import CONTRIBUTIONS, GITHUB_BLOB, MEMBERS, PAGES_URL, REPO, VIDEO_URLS
 
 ROOT = Path(__file__).resolve().parents[1]
 REP = ROOT / "reports"
@@ -116,7 +116,7 @@ def build_common():
     m["Lecturer"] = "Dr. Lê Thành Sách"
     m["Pages"] = rf"\url{{{PAGES_URL}}}"
     m["Repo"] = rf"\url{{https://github.com/{REPO}}}"
-    m["MemberRows"] = " ".join(f"{i} & {esc(name)} & {sid} & {esc(role)} \\\\"
+    m["MemberRows"] = " ".join(f"{i} & {esc(name)} & {sid} & {esc(CONTRIBUTIONS.get(sid, role))} \\\\"
                                for i, (name, sid, role, *_) in enumerate(MEMBERS, 1))
     m.write(GEN / "common.tex")
 

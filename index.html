@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Group G3 - Programming Foundations for Data Analysis and Visualization.">
   <meta name="theme-color" content="#101514">
+  <script>/* apply the saved or system theme before first paint */(function(){var t;try{t=localStorage.getItem('g3-theme');}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();</script>
   <title>G3 / Signal &amp; Story</title>
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +19,7 @@
 <body>
   <div class="noise" aria-hidden="true"></div>
   <header class="site-header">
-    <a class="brand" href="#top" aria-label="G3 home"><span class="brand-mark">G3</span><span>Signal / Story</span></a>
+    <a class="brand" href="#top" aria-label="Ho Chi Minh City University of Technology — home"><img class="brand-logo" src="assets/hcmut-logo.png" width="40" height="40" alt=""><span class="brand-text"><strong>Trường Đại học Bách Khoa – ĐHQG TP.HCM</strong><small>Ho Chi Minh City University of Technology</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu <span>+</span></button>
     <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
       <a href="#work">Projects</a>
@@ -22,25 +27,34 @@
       <a href="#team">Team</a>
       <a class="nav-cta" href="#contact">Explore work <span>↗</span></a>
     </nav>
+    <button class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Light / dark mode"><svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
   </header>
 
   <main id="top">
+    <section class="course-band section-shell" aria-label="Course and group information">
+      <div class="course-band-title reveal">
+        <div class="course-meta-heading"><span class="meta-index">G3</span><span>Course project / HCMUT</span></div>
+        <h2>Nền tảng lập trình cho phân tích và trực quan dữ liệu</h2>
+        <p class="course-en">Programming Foundations for Data Analysis and Visualization</p>
+      </div>
+      <div class="course-band-info reveal reveal-delay-short">
+        <dl class="course-facts">
+          <div><dt>Trường / University</dt><dd>Đại học Bách Khoa – ĐHQG TP.HCM<small>Ho Chi Minh City University of Technology – VNU-HCM</small></dd></div>
+          <div><dt>Khoa / Faculty</dt><dd>Khoa Khoa học và Kỹ thuật Máy tính<small>Faculty of Computer Science and Engineering</small></dd></div>
+          <div><dt>Giảng viên / Lecturer</dt><dd>Dr. Lê Thành Sách</dd></div>
+          <div><dt>Học kỳ / Semester</dt><dd>261 · 2026–2027</dd></div>
+        </dl>
+        <ol class="course-members" aria-label="Group members">
+          <li><b>01</b><span>Ly Minh Trung</span><small>2570349</small></li>
+          <li><b>02</b><span>Dinh Truong Tue Linh</span><small>2570441</small></li>
+          <li><b>03</b><span>Nguyen Hoang Nam</span><small>2570261</small></li>
+        </ol>
+      </div>
+    </section>
+
     <section class="hero section-shell">
       <div class="hero-copy reveal">
-        <div class="course-meta">
-          <div class="course-meta-heading"><span class="meta-index">G3</span><span>Course project / HCMUT</span></div>
-          <h2>Nền tảng lập trình cho phân tích và trực quan dữ liệu</h2>
-          <div class="course-meta-details">
-            <p><strong>Trường/University</strong> Đại học Bách Khoa – ĐHQG TP.HCM (Ho Chi Minh University of Technology - VNU)</p>
-            <p><strong>Giảng viên/Lecturer</strong> Dr. Lê Thành Sách</p>
-          </div>
-          <div class="course-members">
-            <span><b>01</b> Ly Minh Trung<br><small>2570349</small></span>
-            <span><b>02</b> Dinh Truong Tue Linh<br><small>2570441</small></span>
-            <span><b>03</b> Nguyen Hoang Nam<br><small>2570261</small></span>
-          </div>
-        </div>
-        <p class="eyebrow"><span class="status-dot"></span> Semester 261 / 2026–2027</p>
+        <p class="eyebrow"><span class="status-dot"></span> Group G3 / Tabular · Text · Time series</p>
         <h1>We turn<br><em>raw signals</em><br>into stories.</h1>
         <p class="hero-lede">Group G3 explores how data becomes insight through analysis, visualization, and machine learning.</p>
         <div class="hero-actions">
@@ -124,9 +138,9 @@
       <div class="section-kicker"><span>04</span><span>The people behind G3</span></div>
       <div class="team-heading"><h2>Three minds.<br><span>One dataset.</span></h2><p>Built with curiosity, precision, and a healthy respect for messy data.</p></div>
       <div class="member-list">
-        <div class="member"><span class="member-index">01</span><div class="member-avatar avatar-lime">LT</div><div class="member-name"><h3>Ly Minh Trung</h3><p>2570349 / Data Scientist</p></div><a class="member-arrow" href="https://www.linkedin.com/in/trung-minh-ly-46b17220b/" target="_blank" rel="noreferrer" aria-label="Ly Minh Trung LinkedIn profile">↗</a></div>
-        <div class="member"><span class="member-index">02</span><div class="member-avatar avatar-peach">DT</div><div class="member-name"><h3>Dinh Truong Tue Linh</h3><p>2570441 / Data Scientist</p></div><span class="member-arrow">↗</span></div>
-        <div class="member"><span class="member-index">03</span><div class="member-avatar avatar-blue">NH</div><div class="member-name"><h3>Nguyen Hoang Nam</h3><p>2570261 / Analysis and Visualization</p></div><span class="member-arrow">↗</span></div>
+        <div class="member"><span class="member-index">01</span><div class="member-avatar avatar-lime">LT</div><div class="member-name"><h3>Ly Minh Trung</h3><p>2570349</p></div><a class="member-arrow" href="https://www.linkedin.com/in/trung-minh-ly-46b17220b/" target="_blank" rel="noreferrer" aria-label="Ly Minh Trung LinkedIn profile">↗</a></div>
+        <div class="member"><span class="member-index">02</span><div class="member-avatar avatar-peach">DT</div><div class="member-name"><h3>Dinh Truong Tue Linh</h3><p>2570441</p></div><span class="member-arrow">↗</span></div>
+        <div class="member"><span class="member-index">03</span><div class="member-avatar avatar-blue">NH</div><div class="member-name"><h3>Nguyen Hoang Nam</h3><p>2570261</p></div><span class="member-arrow">↗</span></div>
       </div>
     </section>
 
